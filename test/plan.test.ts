@@ -123,6 +123,34 @@ describe("plan commands", () => {
     expect(payload.filters_applied).toMatchObject({ uncovered_only: true });
   });
 
+  it("renders plan coverage for humans", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspace(repoRoot, "workspace/active/barryos-website", {
+      workbench: "website-dev",
+      domain: "value",
+      created: "2026-03-10",
+      status: "active",
+      owner: "Thomas",
+      deliverable: "Landing page with lead capture",
+      work_type: "business",
+      tactic: "T1.3",
+      linear: null,
+      "graduated-to": [],
+      "skip-synthesis": null,
+    });
+
+    const result = await runCli(["plan", "coverage"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("Agonda");
+    expect(result.stdout).toContain("Plan coverage");
+    expect(result.stdout).toContain("G1");
+    expect(result.stdout).toContain("workspace/active/barryos-website");
+    expect(result.stdout).toContain("no workspace");
+    expect(result.stdout).toContain("Coverage: 1/14 tactics linked (7%)");
+  });
+
   it("validates a correct plan", async () => {
     const repoRoot = await createTestRepo();
 

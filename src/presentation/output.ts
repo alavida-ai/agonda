@@ -97,6 +97,38 @@ interface PlanViewPayload {
   }>;
 }
 
+interface PlanCoveragePayload {
+  cycle: {
+    name: string;
+    current_week: number;
+    max_weeks: number;
+  };
+  goals: Array<{
+    id: string;
+    name: string;
+    owner: string;
+    current: number;
+    target: number;
+    tactics: Array<{
+      id: string;
+      text: string;
+      owner: string;
+      type: string;
+      cadence?: string;
+      due_week?: number;
+      workspace_path?: string | null;
+      covered: boolean;
+    }>;
+  }>;
+  summary: {
+    total_tactics: number;
+    covered_tactics: number;
+    uncovered_tactics: number;
+    coverage_percent: number;
+  };
+  filters_applied: Record<string, unknown>;
+}
+
 export function printSuccess(
   payload: unknown,
   asJson: boolean,
@@ -336,6 +368,58 @@ export function renderPlanView(payload: unknown): string {
   }
 
   return lines.join("\n");
+}
+
+export function renderPlanCoverage(payload: unknown): string {
+  const data = payload as PlanCoveragePayload;
+  const lines = [
+    brandBanner(
+      "Agonda",
+      `Plan coverage • Week ${data.cycle.current_week} of ${data.cycle.max_weeks} • ${data.cycle.name}`,
+    ),
+  ];
+
+  if (Object.keys(data.filters_applied).length > 0) {
+    lines.push(subtle(`filters: ${formatFilters(data.filters_applied)}`));
+    lines.push("");
+  }
+
+  for (const goal of data.goals) {
+    lines.push(sectionTitle(goal.id, `${goal.current}/${goal.target}`));
+    lines.push(`  ${goal.name}`);
+
+    if (goal.tactics.length === 0) {
+      lines.push(`  ${subtle("No tactics match the current filters.")}`);
+      lines.push("");
+      continue;
+    }
+
+    for (const tactic of goal.tactics) {
+      const coverage = tactic.covered
+        ? `${symbol("success")} ${tactic.workspace_path}`
+        : `${symbol("warning")} no workspace`;
+      const meta = [
+        tactic.owner,
+        tactic.type === "deliverable" ? `wk ${tactic.due_week}` : tactic.cadence,
+        coverage,
+      ]
+        .filter(Boolean)
+        .join("  ");
+
+      lines.push(`  ${padText(tactic.id, 6)} ${truncateText(tactic.text, 72)}`);
+      lines.push(`       ${subtle(meta)}`);
+    }
+
+    lines.push("");
+  }
+
+  lines.push(
+    subtle(
+      `Coverage: ${data.summary.covered_tactics}/${data.summary.total_tactics} tactics linked (${data.summary.coverage_percent}%)`,
+    ),
+  );
+
+  return lines.join("\n").trimEnd();
 }
 
 function renderDefaultHuman(payload: unknown): string {

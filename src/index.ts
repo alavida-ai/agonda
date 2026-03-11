@@ -7,6 +7,7 @@ import {
   printSuccess,
   renderAction,
   renderGoalList,
+  renderPlanCoverage,
   renderPlanView,
   renderPlanValidate,
   renderTacticList,
@@ -86,7 +87,7 @@ withJsonOption(
     planCoverage(repoRoot, {
       goal: options.goal ? String(options.goal) : undefined,
       uncoveredOnly: Boolean(options.uncoveredOnly) || undefined,
-    })),
+    }), renderPlanCoverage),
 );
 
 withJsonOption(plan.command("validate")).action(
