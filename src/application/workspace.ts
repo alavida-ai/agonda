@@ -186,10 +186,19 @@ export async function scanWorkspaceDirectoriesCommand(
   input: { staleDays?: number } = {},
 ): Promise<Record<string, unknown>> {
   const staleDays = input.staleDays ?? 30;
+  if (!Number.isFinite(staleDays) || staleDays < 0) {
+    throw new ValidationError("stale-days must be a non-negative number");
+  }
   const registered = await scanWorkspaces(repoRoot);
   const discovered = await scanWorkspaceDirectories(repoRoot);
-  const registeredDirs = new Set(registered.map((workspace) => workspace.relativeDir));
-  const unregistered = discovered.filter((directory) => !registeredDirs.has(directory.relativeDir));
+  const registeredDirs = registered.map((workspace) => workspace.relativeDir);
+  const unregistered = discovered.filter((directory) =>
+    !registeredDirs.some(
+      (registeredDir) =>
+        directory.relativeDir === registeredDir ||
+        directory.relativeDir.startsWith(`${registeredDir}/`),
+    ),
+  );
 
   const hydrated = await Promise.all(
     unregistered.map(async (directory) => {

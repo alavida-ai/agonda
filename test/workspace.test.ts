@@ -139,6 +139,39 @@ describe("workspace commands", () => {
     expect(result.stdout).toContain("Stale 1  |  threshold 5d");
   });
 
+  it("does not report nested directories inside a registered workspace", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspace(repoRoot, "workspace/active/barryos-website", {
+      workbench: "website-dev",
+      domain: "value",
+      created: "2026-03-10",
+      status: "active",
+      owner: "Thomas",
+      deliverable: "Landing page with lead capture",
+      work_type: "business",
+      tactic: "T1.3",
+      linear: null,
+      "graduated-to": [],
+      "skip-synthesis": null,
+    });
+    await createWorkspaceDirectory(repoRoot, "workspace/active/barryos-website/research/notes");
+
+    const result = await runCli(["workspace", "scan", "--json"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout).unregistered).toEqual([]);
+  });
+
+  it("rejects an invalid stale threshold", async () => {
+    const repoRoot = await createTestRepo();
+
+    const result = await runCli(["workspace", "scan", "--stale-days", "nope"], repoRoot);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toContain("stale-days must be a non-negative number");
+  });
+
   it("creates and lists a workspace", async () => {
     const repoRoot = await createTestRepo();
 
