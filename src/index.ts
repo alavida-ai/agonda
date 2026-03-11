@@ -21,6 +21,7 @@ import {
   editTactic,
   initPlan,
   listGoals,
+  planCoverage,
   listTactics,
   removeGoal,
   removeTactic,
@@ -76,6 +77,16 @@ const plan = program.commands.at(-1)!;
 
 withJsonOption(plan.command("view")).action(
   run(async (repoRoot) => viewPlan(repoRoot), renderPlanView),
+);
+
+withJsonOption(
+  plan.command("coverage").option("--goal <id>").option("--uncovered-only"),
+).action(
+  run(async (repoRoot, options) =>
+    planCoverage(repoRoot, {
+      goal: options.goal ? String(options.goal) : undefined,
+      uncoveredOnly: Boolean(options.uncoveredOnly) || undefined,
+    })),
 );
 
 withJsonOption(plan.command("validate")).action(

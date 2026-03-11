@@ -2,7 +2,7 @@ import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { createTestRepo, runCli } from "./helpers";
+import { createTestRepo, createWorkspace, runCli } from "./helpers";
 
 describe("plan commands", () => {
   it("views the plan as json with computed cycle metadata", async () => {
@@ -18,6 +18,56 @@ describe("plan commands", () => {
     expect(payload.goals).toHaveLength(3);
     expect(payload.due_this_week.some((tactic: { id: string }) => tactic.id === "T2.1")).toBe(true);
     expect(payload.habits.some((tactic: { id: string }) => tactic.id === "T1.1")).toBe(true);
+  });
+
+  it("reports tactic coverage as json", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspace(repoRoot, "workspace/active/barryos-website", {
+      workbench: "website-dev",
+      domain: "value",
+      created: "2026-03-10",
+      status: "active",
+      owner: "Thomas",
+      deliverable: "Landing page with lead capture",
+      work_type: "business",
+      tactic: "T1.3",
+      linear: null,
+      "graduated-to": [],
+      "skip-synthesis": null,
+    });
+
+    const result = await runCli(["plan", "coverage", "--json"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+
+    const payload = JSON.parse(result.stdout);
+    expect(payload.cycle.name).toBe("Cycle 2");
+    expect(payload.goals).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "G1",
+          tactics: expect.arrayContaining([
+            expect.objectContaining({
+              id: "T1.3",
+              covered: true,
+              workspace_path: "workspace/active/barryos-website",
+            }),
+            expect.objectContaining({
+              id: "T1.1",
+              covered: false,
+              workspace_path: null,
+            }),
+          ]),
+        }),
+      ]),
+    );
+    expect(payload.summary).toMatchObject({
+      total_tactics: 14,
+      covered_tactics: 1,
+      uncovered_tactics: 13,
+      coverage_percent: 7,
+    });
   });
 
   it("validates a correct plan", async () => {
