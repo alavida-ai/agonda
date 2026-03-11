@@ -70,6 +70,59 @@ describe("plan commands", () => {
     });
   });
 
+  it("filters coverage to a single goal", async () => {
+    const repoRoot = await createTestRepo();
+
+    const result = await runCli(["plan", "coverage", "--goal", "G1", "--json"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+
+    const payload = JSON.parse(result.stdout);
+    expect(payload.goals).toHaveLength(1);
+    expect(payload.goals[0].id).toBe("G1");
+    expect(payload.filters_applied).toMatchObject({ goal: "G1" });
+    expect(payload.summary.total_tactics).toBe(payload.goals[0].tactics.length);
+  });
+
+  it("filters coverage to uncovered tactics only", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspace(repoRoot, "workspace/active/barryos-website", {
+      workbench: "website-dev",
+      domain: "value",
+      created: "2026-03-10",
+      status: "active",
+      owner: "Thomas",
+      deliverable: "Landing page with lead capture",
+      work_type: "business",
+      tactic: "T1.3",
+      linear: null,
+      "graduated-to": [],
+      "skip-synthesis": null,
+    });
+
+    const result = await runCli(["plan", "coverage", "--uncovered-only", "--json"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+
+    const payload = JSON.parse(result.stdout);
+    const tactics = payload.goals.flatMap(
+      (goal: { tactics: Array<{ id: string; covered: boolean }> }) => goal.tactics,
+    );
+
+    expect(tactics).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: "T1.3" })]),
+    );
+    expect(tactics.every((tactic: { covered: boolean }) => tactic.covered === false)).toBe(true);
+    expect(payload.summary).toMatchObject({
+      total_tactics: 13,
+      covered_tactics: 0,
+      uncovered_tactics: 13,
+      coverage_percent: 0,
+    });
+    expect(payload.filters_applied).toMatchObject({ uncovered_only: true });
+  });
+
   it("validates a correct plan", async () => {
     const repoRoot = await createTestRepo();
 
