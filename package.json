@@ -1,6 +1,6 @@
 {
   "name": "@alavida/agonda",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CLI for managing execution plans and workspace lifecycles in Agonda-structured repositories",
   "type": "module",
   "bin": {
@@ -40,7 +40,12 @@
   "engines": {
     "node": ">=20"
   },
-  "keywords": ["cli", "agonda", "workspace", "execution-plan"],
+  "keywords": [
+    "cli",
+    "agonda",
+    "workspace",
+    "execution-plan"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/alavida-ai/agonda.git"
