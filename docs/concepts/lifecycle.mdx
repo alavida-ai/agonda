@@ -1,0 +1,117 @@
+---
+title: Workspace Lifecycle
+description: The four statuses, transition rules, and how workspaces move from creation to archive.
+---
+
+Every workspace moves through a defined lifecycle. The CLI enforces these transitions — you cannot skip states or go backwards.
+
+## The Four Statuses
+
+<Steps>
+  <Step title="active" icon="play">
+    Work in progress. Created via `agonda workspace create`.
+  </Step>
+  <Step title="ready-for-synthesis" icon="check">
+    Done — insights waiting to be promoted to domain knowledge. Via `agonda workspace complete`.
+  </Step>
+  <Step title="synthesizing" icon="gears">
+    The synthesis pipeline is actively extracting insights into domain knowledge.
+  </Step>
+  <Step title="archived" icon="box-archive">
+    Terminal. Value captured or explicitly skipped.
+  </Step>
+</Steps>
+
+<Note>
+  **Shortcut:** `agonda workspace complete --skip-synthesis "reason"` jumps directly from **active** to **archived**, bypassing synthesis.
+</Note>
+
+## Transitions
+
+### Closing a workspace
+
+When you finish work in a workspace, you make one decision: **are there insights here worth extracting into domain knowledge?**
+
+<Tabs>
+  <Tab title="With synthesis (default)">
+    ```bash
+    agonda workspace complete my-workspace
+    ```
+
+    Moves to `ready-for-synthesis`. The synthesis pipeline picks it up, extracts patterns and decisions into domain knowledge files, then moves it through `synthesizing` → `archived`.
+  </Tab>
+  <Tab title="Without synthesis">
+    ```bash
+    agonda workspace complete my-workspace \
+      --skip-synthesis "pure build, no new domain insights"
+    ```
+
+    Jumps straight to `archived`. The reasoning is stored in workspace.json so the team can audit what was skipped.
+  </Tab>
+</Tabs>
+
+### After synthesis
+
+```bash
+agonda workspace archive my-workspace
+```
+
+Only valid from `synthesizing`. This is the terminal state — synthesis is done, value has been captured.
+
+### Graduation
+
+```bash
+agonda workspace graduate my-workspace --repo alavida-ai/website
+```
+
+Metadata-only. Works from any status. Records that this workspace produced an independent codebase. Does not change lifecycle state.
+
+## Rules
+
+<AccordionGroup>
+  <Accordion title="No backwards transitions">
+    You cannot reopen an archived workspace. If archived work needs more attention, create a new workspace. This keeps history clean.
+  </Accordion>
+  <Accordion title="No skipping forward">
+    An active workspace cannot jump to `synthesizing`. An active workspace cannot be `archive`d directly — it must go through `complete` first.
+  </Accordion>
+  <Accordion title="All transitions are metadata-only">
+    The CLI writes to workspace.json but never moves files. The physical `git mv` to `workspace/archive/` is a deliberate human action.
+  </Accordion>
+  <Accordion title="Drift detection">
+    `workspace validate` catches mismatches between status and filesystem location. Archived workspace still in `workspace/active/`? Warning. Active workspace in `workspace/archive/`? Error.
+  </Accordion>
+</AccordionGroup>
+
+## Rejected Transitions
+
+| Attempt | Error |
+|---------|-------|
+| `complete` from non-active | "Cannot complete from {status}. Only active workspaces can be completed." |
+| `archive` from non-synthesizing | "Cannot archive from {status}. Use 'workspace complete' to close an active workspace." |
+| Any backwards transition | "Cannot transition from {current} to {target}. No backwards transitions — create a new workspace." |
+
+## Staleness
+
+A workspace is **stale** when it is `active` with no git activity for 14+ days.
+
+```bash
+agonda workspace list --json | jq '.summary.stale_count'
+```
+
+Staleness is informational, not a lifecycle state. The CLI computes it from git activity and surfaces it in JSON output and workspace summaries.
+
+## The Synthesis Pipeline
+
+The lifecycle is designed around synthesis — the process of transforming workspace insights into domain knowledge.
+
+```
+Workspace insights    →    Synthesis    →    Domain knowledge
+(CONTINUE.md,              (extract,          (domains/*/knowledge/)
+ decisions, research)       structure,
+                            cite sources)
+```
+
+The workspace is cited, not consumed. Source material stays as provenance. Domain knowledge links back to its workspace origins.
+
+Not every workspace produces insights — which is why `--skip-synthesis` exists. But the default path always passes through synthesis, because the assumption is that your work produced something worth keeping.

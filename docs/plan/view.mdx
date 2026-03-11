@@ -1,0 +1,89 @@
+---
+title: plan view
+description: See goals, tactics, due dates, overdue items, and linked workspaces in one unified view.
+---
+
+The single most useful command. Shows your full plan with computed state.
+
+## Usage
+
+```bash
+agonda plan view [--json]
+```
+
+## Output
+
+```
+Agonda
+Week 1 of 12 • Cycle 2
+
+Goals
+  G1   Close 3 paid client engagements  Thomas   0/3
+  G2   Ship 5 public workbenches to GitHub with landing pa…  Alex     0/5
+  G3   Produce 60 pieces of short-form content  Thomas   0/60
+
+Due This Week (9)
+  T1.1   Schedule 3 discovery calls per week with ICP prospects
+         Thomas  weekly
+  T1.4   Run rehearsal sales call with BarryOS founders (Morris + Ward)
+         Thomas  wk 1
+
+Overdue (0)
+  Nothing overdue.
+```
+
+## How It Works
+
+- **Current week** is computed from cycle dates and today's date — never stored
+- **Overdue** = deliverable where `due_week < current_week` and `completed` is not `true`
+- **Workspace paths** appear next to tactics when a workspace's `tactic` field matches
+- Human output is branded and optimized for scanning; use `--json` for full structured data
+
+## JSON Output
+
+```bash
+agonda plan view --json
+```
+
+```json
+{
+  "cycle": {
+    "name": "Cycle 2",
+    "start": "2026-03-10",
+    "end": "2026-06-01",
+    "current_week": 3,
+    "max_weeks": 12,
+    "last_edited": "2026-03-15",
+    "last_edited_days_ago": 4
+  },
+  "vision": "By June, Agonda has 3 paying clients...",
+  "goals": [
+    {
+      "id": "G1",
+      "name": "Close 3 paid client engagements",
+      "owner": "Thomas",
+      "lag_measure": "Number of signed contracts",
+      "target": 3,
+      "current": 0
+    }
+  ],
+  "due_this_week": [
+    {
+      "id": "T1.3",
+      "goal": "G1",
+      "text": "Complete BarryOS website build",
+      "owner": "Thomas",
+      "type": "deliverable",
+      "due_week": 2,
+      "completed": false,
+      "workspace_path": "workspace/active/barryos-website"
+    }
+  ],
+  "overdue": [...],
+  "habits": [...]
+}
+```
+
+<Tip>
+  Use this as the preparation step before your Weekly Accountability Meeting: `agonda plan view` shows what was due, what's overdue, and who owns what.
+</Tip>

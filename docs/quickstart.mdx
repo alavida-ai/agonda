@@ -1,0 +1,125 @@
+---
+title: Quick Start
+description: Get up and running with the Agonda CLI in under 5 minutes.
+---
+
+## Install
+
+```bash
+npm install -g agonda
+```
+
+Requires Node.js 20+.
+
+## See Your Plan
+
+```bash
+agonda plan view
+```
+
+```
+Agonda
+Week 1 of 12 • Cycle 2
+
+Goals
+  G1   Close 3 paid client engagements  Thomas   0/3
+  ...
+
+Due This Week (9)
+  T1.1   Schedule 3 discovery calls per week with ICP prospects
+         Thomas  weekly
+  ...
+```
+
+<Tip>
+  Add `--json` to any command for structured output that agents can consume.
+</Tip>
+
+## See All Workspaces
+
+```bash
+agonda workspace list
+```
+
+```
+Agonda
+2 workspaces
+
+ACTIVE (2)
+
+  barryos-website           Thomas    business  new
+    workbench: website-dev
+    deliverable: Landing page with lead capture live on agonda.ai
+```
+
+## Create a Workspace
+
+```bash
+agonda workspace create barryos-website \
+  --workbench website-dev \
+  --domain value \
+  --owner Thomas \
+  --deliverable "Landing page with lead capture" \
+  --work-type business \
+  --tactic T1.3
+```
+
+This scaffolds a directory with `workspace.json`, `CONTINUE.md`, and `LEARNINGS.md`.
+
+## Close a Workspace
+
+When you're done, decide: are the insights worth synthesizing into domain knowledge?
+
+```bash
+# Yes — queue for synthesis (default)
+agonda workspace complete barryos-website
+
+# No — archive directly
+agonda workspace complete barryos-website \
+  --skip-synthesis "pure build, no new insights"
+```
+
+## Common Queries
+
+```bash
+# What's stale?
+agonda workspace list --json | jq '.summary.stale_count'
+
+# What's Thomas working on?
+agonda plan tactic list --owner Thomas
+
+# What's overdue?
+agonda plan tactic list --overdue
+
+# Find workspace for a Linear ticket
+agonda workspace list --linear-type issue --linear-id ALA-340
+
+# Business vs internal split
+agonda workspace list --work-type business
+```
+
+## For Agents
+
+Agents should use `--json` for machine-readable output.
+
+```bash
+agonda plan view --json | jq '.overdue[] | .id'
+agonda workspace list --json | jq '.summary.by_work_type'
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Plan Commands" icon="bullseye" href="/plan/overview">
+    Full reference for managing goals and tactics.
+  </Card>
+  <Card title="Workspace Commands" icon="folder-open" href="/workspace/overview">
+    Full reference for workspace lifecycle.
+  </Card>
+  <Card title="Workspace Lifecycle" icon="arrows-spin" href="/concepts/lifecycle">
+    Understand the four statuses and transitions.
+  </Card>
+  <Card title="Schemas" icon="database" href="/concepts/schemas">
+    Field-level specs for plan.yaml and workspace.json.
+  </Card>
+</CardGroup>

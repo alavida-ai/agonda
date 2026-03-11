@@ -1,0 +1,43 @@
+---
+title: plan tactic complete / reopen
+description: Mark deliverable tactics as done or reopen them.
+---
+
+Deliverable completion is tracked explicitly in plan.yaml. This is the source of truth for overdue calculations — `plan view` and `tactic list --overdue` use this state.
+
+## Complete a Tactic
+
+```bash
+agonda plan tactic complete T1.3
+agonda plan tactic complete T1.3 --by Thomas
+```
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--by` | No | Who completed it (defaults to `"cli"`) |
+
+**Writes to plan.yaml:**
+- `completed: true`
+- `completed_at: {today}`
+- `completed_by: {name}`
+
+<Warning>
+  Only works on deliverables. Habits are scored at WAM — they don't have a "done" state.
+</Warning>
+
+## Reopen a Tactic
+
+```bash
+agonda plan tactic reopen T1.3
+```
+
+Clears `completed_at`, `completed_by`, and resets `completed: false`. Rejects if the tactic is not currently completed.
+
+## Why Explicit Completion?
+
+The system does not infer tactic completion from Linear status or workspace lifecycle. Linear tracks execution details. workspace.json tracks context. Neither should be overloaded to decide whether the committed tactic is done.
+
+Explicit completion means:
+- `plan view` shows the correct overdue list without any API calls
+- Agents get accurate priority data from `plan view --json`
+- Completion is a conscious decision, not an inferred side effect

@@ -1,0 +1,105 @@
+---
+title: plan tactic
+description: Add, edit, remove, and filter tactics — the actions that serve your goals.
+---
+
+Tactics are the actions each person commits to. Every tactic has an owner, a goal, and a type.
+
+## Add a Tactic
+
+### Deliverable
+
+A concrete output with a due week:
+
+```bash
+agonda plan tactic add \
+  --id T1.3 \
+  --goal G1 \
+  --text "Complete BarryOS website build" \
+  --owner Thomas \
+  --type deliverable \
+  --due-week 2
+```
+
+The CLI auto-sets `completed: false`, `completed_at: null`, `completed_by: null`.
+
+### Habit
+
+A recurring behavior scored weekly:
+
+```bash
+agonda plan tactic add \
+  --id T1.1 \
+  --goal G1 \
+  --text "Schedule 3 discovery calls per week" \
+  --owner Thomas \
+  --type habit \
+  --cadence weekly
+```
+
+### Flags
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--id` | Yes | Unique identifier (format: `T{goal}.{n}`) |
+| `--goal` | Yes | Goal ID this tactic serves |
+| `--text` | Yes | What the tactic is |
+| `--owner` | Yes | Accountable person |
+| `--type` | Yes | `deliverable` or `habit` |
+| `--due-week` | Deliverables | Week number within cycle |
+| `--cadence` | Habits | Frequency: `weekly`, `daily`, `per-event`, `ongoing` |
+
+## Edit a Tactic
+
+```bash
+agonda plan tactic edit T2.1 --due-week 3
+agonda plan tactic edit T2.1 --owner Chicote
+```
+
+Only provided flags are updated.
+
+## Remove a Tactic
+
+```bash
+agonda plan tactic remove T1.4
+```
+
+## List and Filter Tactics
+
+All filter flags are optional and AND-combined:
+
+```bash
+agonda plan tactic list                          # all tactics
+agonda plan tactic list --owner Thomas           # Thomas's tactics
+agonda plan tactic list --due-week 3             # due this week
+agonda plan tactic list --goal G1                # under goal G1
+agonda plan tactic list --overdue                # past due, not completed
+agonda plan tactic list --type habit             # habits only
+agonda plan tactic list --json                   # structured output
+```
+
+| Flag | What it filters |
+|------|----------------|
+| `--owner` | Tactics owned by this person |
+| `--due-week` | Deliverables due in this week |
+| `--goal` | Tactics under this goal |
+| `--overdue` | Deliverables past due_week and not completed |
+| `--type` | `habit` or `deliverable` |
+
+### JSON Output
+
+```json
+{
+  "tactics": [
+    {
+      "id": "T1.1",
+      "goal": "G1",
+      "text": "Schedule 3 discovery calls per week",
+      "owner": "Thomas",
+      "type": "habit",
+      "cadence": "weekly"
+    }
+  ],
+  "filters_applied": { "owner": "Thomas" }
+}
+```

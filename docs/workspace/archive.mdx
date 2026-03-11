@@ -1,0 +1,28 @@
+---
+title: workspace archive
+description: Terminal transition after the synthesis pipeline completes.
+---
+
+## Usage
+
+```bash
+agonda workspace archive barryos-website
+```
+
+## Behavior
+
+- Validates status is `synthesizing`
+- Sets status to `archived`
+- Output: `"barryos-website archived. Remember: move to workspace/archive/ when ready."`
+
+## When to Use
+
+Typically called by the synthesis pipeline agent after it finishes extracting insights into domain knowledge. Humans usually don't call this directly — they close workspaces with [`workspace complete`](/workspace/complete).
+
+<Warning>
+  Only valid from `synthesizing` status. Use `workspace complete` to close an `active` workspace. Use `workspace complete --skip-synthesis` to archive without synthesis.
+</Warning>
+
+<Info>
+  Like all lifecycle commands, this is metadata-only. The CLI writes to workspace.json but never moves files.
+</Info>

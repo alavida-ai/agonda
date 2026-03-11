@@ -1,0 +1,105 @@
+---
+title: workspace list
+description: Query across all workspaces — who owns what, what each workspace is for, and how recently it moved.
+---
+
+The primary visibility tool. Scans all `workspace.json` files under `workspace/`.
+
+## Usage
+
+```bash
+agonda workspace list [filters] [--verbose] [--json]
+```
+
+## Output
+
+```
+Agonda
+2 workspaces
+
+ACTIVE (2)
+
+  barryos-website           Thomas    business  1d ago
+    workbench: website-dev
+    deliverable: Landing page with lead capture live on agonda.ai
+
+  content-engine            Thomas    internal  new
+    workbench: content-creator
+    deliverable: Record and package short-form content pipeline experiments
+
+Total 2  |  stale 0  |  business:1  internal:1
+```
+
+Use `--verbose` to add tactic and Linear link lines to each workspace entry.
+
+## Filter Flags
+
+All flags are optional and AND-combined:
+
+| Flag | What it filters |
+|------|----------------|
+| `--status active` | Only active workspaces |
+| `--owner Thomas` | Thomas's workspaces |
+| `--tactic T2.1` | Linked to this tactic |
+| `--workbench website-dev` | Using this workbench |
+| `--work-type business` | Business workspaces only |
+| `--linear-type issue --linear-id ALA-340` | Linked to this exact issue |
+| `--linear-project ALA-142` | Linked to this project (or milestones within it) |
+| `--verbose` | Show tactic and Linear metadata in human output |
+
+## Common Queries
+
+```bash
+# How much is in flight?
+agonda workspace list --status active
+
+# Revenue work vs infrastructure
+agonda workspace list --work-type business
+agonda workspace list --work-type internal
+
+# Find workspace for a Linear ticket
+agonda workspace list --linear-type issue --linear-id ALA-340
+
+# What needs synthesis?
+agonda workspace list --status ready-for-synthesis
+```
+
+## JSON Output
+
+```json
+{
+  "workspaces": [
+    {
+      "name": "barryos-website",
+      "path": "workspace/active/barryos-website",
+      "workbench": "website-dev",
+      "domain": "value",
+      "status": "active",
+      "owner": "Thomas",
+      "deliverable": "Landing page with lead capture live on agonda.ai",
+      "work_type": "business",
+      "tactic": "T1.3",
+      "linear": { "type": "project", "id": "ALA-142" },
+      "last_activity": "2026-03-09",
+      "last_activity_days_ago": 1,
+      "stale": false
+    }
+  ],
+  "summary": {
+    "total": 17,
+    "by_status": {
+      "active": 12,
+      "ready-for-synthesis": 1,
+      "synthesizing": 0,
+      "archived": 4
+    },
+    "by_work_type": { "business": 3, "internal": 12, "change": 2 },
+    "stale_count": 2
+  },
+  "filters_applied": {}
+}
+```
+
+<Info>
+  Last activity is computed via `git log` on each workspace directory. If a workspace has no commit history yet, human output shows `new`.
+</Info>

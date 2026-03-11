@@ -1,0 +1,33 @@
+---
+title: plan init
+description: Set cycle metadata — name, dates, and vision.
+---
+
+## Usage
+
+```bash
+agonda plan init \
+  --name "Cycle 2" \
+  --start 2026-03-10 \
+  --end 2026-06-01 \
+  --vision "By June, Agonda has 3 paying clients..."
+```
+
+## Flags
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--name` | Yes | Cycle name (e.g., "Cycle 2") |
+| `--start` | Yes | Cycle start date (ISO format: YYYY-MM-DD) |
+| `--end` | Yes | Cycle end date (ISO format: YYYY-MM-DD) |
+| `--vision` | Yes | Vision statement — the emotional fuel for the cycle |
+
+## Behavior
+
+- If `plan.yaml` doesn't exist, creates it with cycle metadata and empty `goals`/`tactics` arrays
+- If `plan.yaml` exists, overwrites the `cycle` and `vision` sections only — existing goals and tactics are preserved
+- Validates after writing
+
+<Info>
+  Run this once at the start of each 12-week cycle. The vision should be specific enough to motivate ("By June, Agonda has 3 paying clients") not vague ("Grow the business").
+</Info>

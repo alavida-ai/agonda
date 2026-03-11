@@ -1,0 +1,60 @@
+---
+title: Work Types
+description: The four types of work from the Phoenix Project — making the invisible visible.
+---
+
+All work falls into four categories. This is the most important categorization in the system, drawn from the Phoenix Project.
+
+## The Four Types
+
+| Type | What it is | The danger |
+|------|-----------|-----------|
+| **Business** | Delivers value to customers | Gets displaced by everything else |
+| **Internal** | Improves your own capability | Never feels urgent, always deferred |
+| **Change** | Modifications to existing systems | Volume overwhelms if uncontrolled |
+| **Unplanned** | Recovery, firefighting, surprises | **The silent killer.** Destroys all planned work. |
+
+<Warning>
+  Unplanned work is "anti-work." It doesn't create value — it displaces all planned work and feeds on itself. You can't manage it until you can see it.
+</Warning>
+
+## How They're Tracked
+
+### On workspaces
+
+Every workspace carries a `work_type` field:
+
+```bash
+agonda workspace create my-project --work-type business ...
+```
+
+Three values: `business`, `internal`, `change`. Unplanned work is not a workspace type — it displaces planned work rather than getting its own workspace.
+
+### On Linear tickets
+
+A `Work Type` label group with four values: Business, Internal, Change, **Unplanned**. The Unplanned label catches tickets without workspaces — quick fixes, bug reports, firefighting.
+
+### At WAM
+
+Unplanned work is discussed narratively: what happened, what it displaced. The key question: **"What unplanned work happened this week, and what did it displace?"**
+
+## Portfolio Visibility
+
+```bash
+# See the split
+agonda workspace list --work-type business
+agonda workspace list --work-type internal
+agonda workspace list --work-type change
+```
+
+The JSON summary gives you the ratio at a glance:
+
+```json
+{
+  "summary": {
+    "by_work_type": { "business": 3, "internal": 12, "change": 2 }
+  }
+}
+```
+
+If internal work vastly outweighs business work, you're over-investing in the engine and under-investing in selling.

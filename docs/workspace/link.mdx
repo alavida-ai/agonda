@@ -1,0 +1,42 @@
+---
+title: workspace link
+description: Connect a workspace to a plan tactic or Linear object after creation.
+---
+
+## Usage
+
+```bash
+# Link to a tactic
+agonda workspace link --tactic T2.1
+
+# Link to a Linear project
+agonda workspace link --linear-type project --linear-id ALA-142
+
+# Link to a milestone within a project
+agonda workspace link --linear-type milestone --linear-id launch-readiness --linear-project ALA-142
+
+# Specify workspace by path
+agonda workspace link --path workspace/active/barryos-website --tactic T1.3
+```
+
+## Flags
+
+| Flag | Description |
+|------|-------------|
+| `--tactic` | Tactic ID from plan.yaml |
+| `--linear-type` | `issue`, `milestone`, or `project` (requires `--linear-id`) |
+| `--linear-id` | Linear object identifier |
+| `--linear-project` | Parent project (required for milestone links) |
+| `--path` | Workspace directory (defaults to cwd if omitted) |
+
+At least one linking flag is required (`--tactic` or `--linear-type`/`--linear-id`).
+
+## Behavior
+
+Merges provided fields into the existing workspace.json. Does **not** clear fields that aren't provided — linking a tactic doesn't remove an existing Linear link.
+
+If `--tactic` is given, overwrites the existing tactic field. If `--linear-type` and `--linear-id` are given, overwrites the entire linear object.
+
+<Note>
+  The CLI stores the link but never validates it against Linear. It's a typed reference — the CLI does exact-match lookups, not relationship inference.
+</Note>

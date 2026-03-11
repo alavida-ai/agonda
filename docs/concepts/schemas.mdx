@@ -1,0 +1,131 @@
+---
+title: Schemas
+description: Field-level specifications for plan.yaml and workspace.json.
+---
+
+## plan.yaml
+
+Located at `domains/operations/knowledge/plan.yaml`. One per repo.
+
+### Cycle
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `cycle.name` | string | Yes | Cycle name (e.g., "Cycle 2") |
+| `cycle.start` | ISO date | Yes | Start date |
+| `cycle.end` | ISO date | Yes | End date |
+| `vision` | string | Yes | Cycle vision statement |
+
+### Goals
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | string | Yes | Unique, format `G{n}` |
+| `name` | string | Yes | Goal name |
+| `owner` | string | Yes | Accountable person |
+| `lag_measure` | string | Yes | What you're measuring |
+| `target` | number | Yes | Numeric target |
+| `current` | number | Yes | Current progress |
+
+Maximum 3 goals per plan.
+
+### Tactics — Deliverables
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | string | Yes | Unique, format `T{goal}.{n}` |
+| `goal` | string | Yes | Goal ID reference |
+| `text` | string | Yes | Tactic description |
+| `owner` | string | Yes | Accountable person |
+| `type` | `"deliverable"` | Yes | — |
+| `due_week` | number | Yes | Week within cycle (1 to max) |
+| `completed` | boolean | Yes | Completion state |
+| `completed_at` | ISO date / null | Yes | Set when completed |
+| `completed_by` | string / null | Yes | Who completed it |
+
+### Tactics — Habits
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | string | Yes | Unique, format `T{goal}.{n}` |
+| `goal` | string | Yes | Goal ID reference |
+| `text` | string | Yes | Tactic description |
+| `owner` | string | Yes | Accountable person |
+| `type` | `"habit"` | Yes | — |
+| `cadence` | string | Yes | `weekly`, `daily`, `per-event`, `ongoing` |
+
+---
+
+## workspace.json
+
+Located at `{workspace_dir}/workspace.json`. One per workspace.
+
+### Core Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `workbench` | string | Yes | Plugin that created this workspace |
+| `domain` | string | Yes | Domain the workbench belongs to |
+| `created` | ISO date | Yes | Creation date |
+| `status` | enum | Yes | `active` / `ready-for-synthesis` / `synthesizing` / `archived` |
+| `owner` | string | Yes | Accountable person |
+| `deliverable` | string | Yes | What this workspace produces |
+| `work_type` | enum | Yes | `business` / `internal` / `change` |
+
+### Optional Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `tactic` | string | Tactic ID from plan.yaml |
+| `linear` | object | Typed Linear reference |
+| `graduated-to` | string[] | Repos spawned from this workspace |
+| `skip-synthesis` | string | Reason for skipping synthesis |
+
+### Linear Object
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | enum | Yes | `issue` / `milestone` / `project` |
+| `id` | string | Yes | Linear identifier |
+| `project` | string | Milestone only | Parent project |
+
+---
+
+## JSON Output Contract
+
+Every command supports `--json`. Data goes to **stdout**, errors to **stderr**.
+
+```bash
+agonda plan view --json | jq '.overdue[] | .id'
+agonda workspace list --json | jq '.summary.by_work_type'
+```
+
+### Write Commands
+
+```json
+{
+  "action": "workspace_created",
+  "name": "barryos-website",
+  "path": "workspace/active/barryos-website"
+}
+```
+
+### Validation Commands
+
+```json
+{
+  "valid": false,
+  "errors": [{ "field": "...", "message": "..." }],
+  "warnings": [{ "workspace": "...", "check": "...", "message": "..." }]
+}
+```
+
+---
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | Success |
+| `1` | Unexpected error (IO, missing repo, malformed file) |
+| `2` | Validation failure (schema error, invalid transition, missing flag) |

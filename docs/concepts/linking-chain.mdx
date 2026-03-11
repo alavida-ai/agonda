@@ -1,0 +1,89 @@
+---
+title: The Linking Chain
+description: How goals, tactics, workspaces, and Linear tickets connect — tracing any work to its purpose.
+---
+
+Everything connects. You can trace any piece of work from ticket to goal.
+
+## The Chain
+
+```
+Goal G1: "Close 3 paid client engagements"       (plan.yaml)
+  └── Tactic T1.3: "Ship BarryOS website"        (plan.yaml, owner: Thomas)
+        └── Workspace: barryos-website            (workspace.json, tactic: T1.3)
+              └── Linear project ALA-142          (issues: ALA-340, ALA-341...)
+```
+
+## How It's Built
+
+workspace.json is the **linchpin**. It links to both the plan (direction) and Linear (execution):
+
+```json
+{
+  "tactic": "T1.3",
+  "linear": {
+    "type": "project",
+    "id": "ALA-142"
+  }
+}
+```
+
+The `tactic` field points up to plan.yaml. The `linear` field points across to Linear.
+
+## Tracing a Ticket to a Goal
+
+If Chicote has ticket ALA-340 and wants to know why it matters:
+
+```bash
+agonda workspace list --linear-type issue --linear-id ALA-340
+```
+
+This finds the workspace linked to that exact issue, which shows the tactic, which leads to the goal. Three hops: ticket → workspace → tactic → goal.
+
+<Note>
+  The CLI does **exact-match lookups only**. It cannot resolve which issues belong to which project unless that relationship is stored in workspace.json. If a workspace is linked to project ALA-142, searching for issue ALA-340 won't find it — you'd need to search by project instead.
+</Note>
+
+## Three Types of Links
+
+<Tabs>
+  <Tab title="Issue-scoped">
+    Workspace serves a single ticket:
+    ```json
+    { "type": "issue", "id": "ALA-340" }
+    ```
+    Best for focused work on one engineering task.
+  </Tab>
+  <Tab title="Project-scoped">
+    Workspace serves a multi-ticket project:
+    ```json
+    { "type": "project", "id": "ALA-142" }
+    ```
+    Best for deliverable tactics that decompose into many tickets.
+  </Tab>
+  <Tab title="Milestone-scoped">
+    Workspace serves a phase within a project:
+    ```json
+    { "type": "milestone", "id": "launch-readiness", "project": "ALA-142" }
+    ```
+    Best for large projects with distinct phases.
+  </Tab>
+</Tabs>
+
+## Linking After Creation
+
+You don't need all links at creation time. Add them as the work evolves:
+
+```bash
+# Start unlinked
+agonda workspace create my-exploration \
+  --workbench agonda-architect --domain platform \
+  --owner Alex --deliverable "Investigate event sourcing" \
+  --work-type internal
+
+# Later, link to a tactic
+agonda workspace link --tactic T2.4
+
+# Later, link to Linear
+agonda workspace link --linear-type project --linear-id ALA-200
+```

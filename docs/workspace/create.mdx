@@ -1,0 +1,64 @@
+---
+title: workspace create
+description: Scaffold a new workspace with a manifest, continuation file, and learnings file.
+---
+
+## Usage
+
+```bash
+agonda workspace create barryos-website \
+  --workbench website-dev \
+  --domain value \
+  --owner Thomas \
+  --deliverable "Landing page with lead capture live on agonda.ai" \
+  --work-type business \
+  --tactic T1.3 \
+  --linear-type project \
+  --linear-id ALA-142
+```
+
+## Required Flags
+
+| Flag | Description |
+|------|-------------|
+| `--workbench` | Plugin name that created this workspace |
+| `--domain` | Domain the workbench belongs to |
+| `--owner` | Accountable person |
+| `--deliverable` | What this workspace is producing or exploring |
+| `--work-type` | `business`, `internal`, or `change` |
+
+## Optional Flags
+
+| Flag | Description |
+|------|-------------|
+| `--tactic` | Link to a plan.yaml tactic (e.g., `T1.3`) |
+| `--linear-type` | `issue`, `milestone`, or `project` (requires `--linear-id`) |
+| `--linear-id` | Linear object identifier |
+| `--linear-project` | Parent project (required if `--linear-type milestone`) |
+
+## What It Creates
+
+```
+workspace/active/barryos-website/
+├── workspace.json     # manifest with all fields, status: active
+├── CONTINUE.md        # template with deliverable as heading
+└── LEARNINGS.md       # empty, ready for compound learning
+```
+
+## Validation
+
+- Rejects if `workspace/active/{name}/` already exists
+- Name must be lowercase kebab-case (`my-workspace`, not `MyWorkspace`)
+- If `--tactic` is provided, it must exist in `plan.yaml`
+- Full schema validation on the resulting workspace.json
+
+## JSON Output
+
+```json
+{
+  "action": "workspace_created",
+  "name": "barryos-website",
+  "path": "workspace/active/barryos-website",
+  "workspace_json": { "..." }
+}
+```

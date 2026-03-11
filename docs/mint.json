@@ -1,0 +1,78 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Agonda CLI",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#7A5A9B",
+    "light": "#9B7ABB",
+    "dark": "#5A3A7B",
+    "anchors": {
+      "from": "#7A5A9B",
+      "to": "#5A3A7B"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/alavida-ai/agonda"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/alavida-ai/agonda"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "introduction",
+        "quickstart",
+        "concepts/four-layers"
+      ]
+    },
+    {
+      "group": "Plan Commands",
+      "pages": [
+        "plan/overview",
+        "plan/view",
+        "plan/validate",
+        "plan/init",
+        "plan/goal",
+        "plan/tactic",
+        "plan/tactic-complete"
+      ]
+    },
+    {
+      "group": "Workspace Commands",
+      "pages": [
+        "workspace/overview",
+        "workspace/create",
+        "workspace/list",
+        "workspace/link",
+        "workspace/complete",
+        "workspace/archive",
+        "workspace/graduate",
+        "workspace/validate"
+      ]
+    },
+    {
+      "group": "Concepts",
+      "pages": [
+        "concepts/lifecycle",
+        "concepts/work-types",
+        "concepts/linking-chain",
+        "concepts/schemas"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/alavida-ai"
+  }
+}

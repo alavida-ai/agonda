@@ -1,0 +1,161 @@
+# 12 Week Plan — Cycle 2
+# Period: Mar 10 - Jun 1, 2026
+# Methodology: Moran & Lennington, The 12 Week Year (Wiley, 2013)
+# Scored weekly. Target: 85%+ execution score.
+
+cycle:
+  name: "Cycle 2"
+  start: "2026-03-10"
+  end: "2026-06-01"
+
+vision: >
+  By June, Agonda has 3 paying clients, a public workbench marketplace
+  with real GitHub traffic, and a repeatable sales motion built on
+  forward-deployed marketing architects.
+
+goals:
+  - id: G1
+    name: "Close 3 paid client engagements"
+    owner: Thomas
+    lag_measure: "Number of signed contracts"
+    target: 3
+    current: 0
+
+  - id: G2
+    name: "Ship 5 public workbenches to GitHub with landing pages"
+    owner: Alex
+    lag_measure: "Workbenches published with landing pages on agonda.ai"
+    target: 5
+    current: 0
+
+  - id: G3
+    name: "Produce 60 pieces of short-form content"
+    owner: Thomas
+    lag_measure: "Published shorts across X/LinkedIn/YouTube"
+    target: 60
+    current: 0
+
+tactics:
+  # ── G1: Close 3 paid client engagements ──
+  - id: T1.1
+    goal: G1
+    text: "Schedule 3 discovery calls per week with ICP prospects"
+    owner: Thomas
+    cadence: weekly
+    type: habit
+
+  - id: T1.2
+    goal: G1
+    text: "Send A/B comparison demo (vanilla vs Agonda workbench) to every prospect before call"
+    owner: Thomas
+    cadence: per-event
+    type: habit
+
+  - id: T1.3
+    goal: G1
+    text: "Complete BarryOS website build using website-dev workbench"
+    owner: Thomas
+    due_week: 2
+    type: deliverable
+    completed: false
+    completed_at:
+    completed_by:
+
+  - id: T1.4
+    goal: G1
+    text: "Run rehearsal sales call with BarryOS founders (Morris + Ward)"
+    owner: Thomas
+    due_week: 1
+    type: deliverable
+    completed: false
+    completed_at:
+    completed_by:
+
+  - id: T1.5
+    goal: G1
+    text: "Pitch forward-deployed model to Boston marketing head"
+    owner: Alex
+    due_week: 2
+    type: deliverable
+    completed: false
+    completed_at:
+    completed_by:
+
+  - id: T1.6
+    goal: G1
+    text: "Engage in ICP founders' Twitter/LinkedIn comment sections daily"
+    owner: Thomas
+    cadence: daily
+    type: habit
+
+  # ── G2: Ship 5 public workbenches ──
+  - id: T2.1
+    goal: G2
+    text: "Ship website-dev workbench to GitHub with landing page on agonda.ai"
+    owner: Alex
+    due_week: 1
+    type: deliverable
+    completed: false
+    completed_at:
+    completed_by:
+
+  - id: T2.2
+    goal: G2
+    text: "Ship content-creator workbench to GitHub"
+    owner: Chicote
+    due_week: 3
+    type: deliverable
+    completed: false
+    completed_at:
+    completed_by:
+
+  - id: T2.3
+    goal: G2
+    text: "Create landing page for each shipped workbench within 48 hours of publish"
+    owner: Thomas
+    cadence: per-event
+    type: habit
+
+  - id: T2.4
+    goal: G2
+    text: "Iterate on website-dev workbench with BarryOS build learnings"
+    owner: Alex
+    due_week: 3
+    type: deliverable
+    completed: false
+    completed_at:
+    completed_by:
+
+  # ── G3: Produce 60 pieces of short-form content ──
+  - id: T3.1
+    goal: G3
+    text: "Publish 1 short-form video per day to X"
+    owner: Thomas
+    cadence: daily
+    type: habit
+
+  - id: T3.2
+    goal: G3
+    text: "Record A/B comparison video: vanilla AI vs Agonda workbench website build"
+    owner: Thomas
+    due_week: 2
+    type: deliverable
+    completed: false
+    completed_at:
+    completed_by:
+
+  - id: T3.3
+    goal: G3
+    text: "Dog-food content-creator workbench for all content production"
+    owner: Thomas
+    cadence: ongoing
+    type: habit
+
+  - id: T3.4
+    goal: G3
+    text: "Batch next week's content ideas by Friday"
+    owner: Thomas
+    cadence: weekly
+    type: habit
+
+# Weekly scorecards are appended to knowledge/scorecards/week-{N}.yaml

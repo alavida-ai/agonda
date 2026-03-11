@@ -1,0 +1,64 @@
+---
+title: Introduction
+description: Command-line tool for managing execution plans and workspace lifecycles in Agonda-structured repositories.
+---
+
+# Agonda CLI
+
+The Agonda CLI manages two file-based data stores in your git repository:
+
+- **plan.yaml** — your 12-week execution plan (goals, tactics, cycle metadata)
+- **workspace.json** — per-workspace manifests (owner, deliverable, status, links)
+
+It is the **single writer** for both. Humans read formatted output. Agents consume `--json`.
+
+## Why a CLI?
+
+Your operations system spans four layers. The CLI governs the two that live in your repo:
+
+| Layer | Where | Managed by |
+|-------|-------|------------|
+| **Direction** | `plan.yaml` | **Agonda CLI** |
+| **Context** | `workspace.json` | **Agonda CLI** |
+| Execution | Linear | Humans in UI, agents via MCP |
+| Knowledge | `domains/` | Synthesis pipeline |
+
+Direction flows **down** (plan → workspaces → tickets). Status flows **up** (tickets done → workspace complete → synthesis → domain knowledge).
+
+The CLI never touches Linear or any external API.
+
+## Two Command Groups
+
+<CardGroup cols={2}>
+  <Card title="Plan" icon="bullseye" href="/plan/overview">
+    Manage your 12-week execution plan — goals, tactics, due dates, completion tracking.
+  </Card>
+  <Card title="Workspace" icon="folder-open" href="/workspace/overview">
+    Create, query, and lifecycle workspaces — the units of work agents and humans operate inside.
+  </Card>
+</CardGroup>
+
+## Design Principles
+
+<AccordionGroup>
+  <Accordion title="Every command supports --json">
+    Data goes to stdout, errors to stderr. Agents pipe JSON output. Humans get formatted text. Same commands, same interface.
+  </Accordion>
+  <Accordion title="Validate on every write">
+    No mutation without full schema validation. If the CLI writes to plan.yaml or workspace.json, it validates the result before persisting.
+  </Accordion>
+  <Accordion title="No interactive prompts">
+    All mutations are flag-based. No wizards, no menus, no confirmations. This makes the CLI equally usable by humans and agents.
+  </Accordion>
+  <Accordion title="Metadata-only transitions">
+    Lifecycle commands write to workspace.json but never move files. The physical `git mv` to archive stays a deliberate human action.
+  </Accordion>
+</AccordionGroup>
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | Success |
+| `1` | Unexpected error (IO, missing repo, malformed file) |
+| `2` | Validation failure (schema error, invalid transition, missing required flag) |

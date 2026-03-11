@@ -1,0 +1,65 @@
+---
+title: workspace complete
+description: Close an active workspace — queue for synthesis or archive directly.
+---
+
+The single decision point when finishing a workspace: **are there insights here worth extracting into domain knowledge?**
+
+## Usage
+
+```bash
+# Yes — queue for synthesis (default)
+agonda workspace complete barryos-website
+
+# No — archive directly with reasoning
+agonda workspace complete barryos-website \
+  --skip-synthesis "pure build, no new domain insights"
+```
+
+## Flags
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--skip-synthesis` | No | Reason for skipping synthesis. Archives directly. |
+
+## Without `--skip-synthesis`
+
+- Validates status is `active`
+- Sets status to `ready-for-synthesis`
+- Output: `"barryos-website queued for synthesis."`
+
+The synthesis pipeline will pick it up, extract insights, and move it through `synthesizing` → `archived`.
+
+## With `--skip-synthesis`
+
+- Validates status is `active`
+- Sets status to `archived` and stores the reasoning
+- Output: `"barryos-website archived. Remember: move to workspace/archive/ when ready."`
+
+The reasoning is stored in workspace.json so the team can audit what was skipped:
+
+```json
+{
+  "status": "archived",
+  "skip-synthesis": "pure build, no new domain insights"
+}
+```
+
+## JSON Output
+
+```json
+{
+  "action": "workspace_completed",
+  "name": "barryos-website",
+  "new_status": "ready-for-synthesis",
+  "reminder": "move to workspace/archive/ when ready"
+}
+```
+
+<Warning>
+  Only works from `active` status. Completing a workspace that's already archived or synthesizing is rejected with exit code 2.
+</Warning>
+
+<Info>
+  The CLI does not move files. After completing, manually run `git mv workspace/active/barryos-website workspace/archive/barryos-website` when ready.
+</Info>

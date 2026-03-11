@@ -1,0 +1,58 @@
+---
+title: The Four Layers
+description: How direction, context, execution, and knowledge connect across your operations system.
+---
+
+Work flows through four layers. Each has one job and one owner.
+
+```
+DIRECTION     What are we trying to achieve?        → plan.yaml
+CONTEXT       What is each workspace delivering?    → workspace.json
+EXECUTION     What are the tasks and who's on them? → Linear
+KNOWLEDGE     What have we learned?                 → domains/
+```
+
+## How They Connect
+
+**Direction flows down.** Goals and tactics in plan.yaml spawn workspaces. Workspaces decompose into Linear tickets.
+
+**Status flows up.** Linear tickets get done. Workspaces complete. Insights get synthesized into domain knowledge.
+
+| Layer | Where It Lives | Who Writes | Who Reads |
+|-------|---------------|------------|-----------|
+| Direction | `plan.yaml` in the repo | Alex via CLI | Everyone — agents, dashboard, humans |
+| Context | `workspace.json` per workspace | CLI (never hand-edited) | Agents, dashboard |
+| Execution | Linear (projects, issues) | Everyone — humans in UI, agents via MCP | Everyone |
+| Knowledge | `domains/*/knowledge/` | Synthesis pipeline | Agents, humans |
+
+## The CLI's Scope
+
+The Agonda CLI manages the **direction** and **context** layers only. It reads and writes plan.yaml and workspace.json. It never touches Linear or domain knowledge.
+
+<Info>
+  Agents interact with Linear via the Linear MCP server. Humans use the Linear UI. The CLI governs the repo-side layers.
+</Info>
+
+## The Linking Chain
+
+Everything connects. You can trace any piece of work from ticket to goal:
+
+```
+Goal G1: "Close 3 paid client engagements"       (plan.yaml)
+  └── Tactic T1.3: "Ship BarryOS website"        (plan.yaml, owner: Thomas)
+        └── Workspace: barryos-website            (workspace.json, tactic: T1.3)
+              └── Linear project ALA-142          (issues: ALA-340, ALA-341...)
+```
+
+workspace.json is the **linchpin** — it links a workspace to both its plan tactic (direction) and its exact Linear object (execution).
+
+## Why Not One Tool?
+
+No single tool handles all four layers:
+
+- **plan.yaml** is agent-readable without API calls but human-hostile for daily task management
+- **Linear** has the human UI for tickets but can't express goals or habits
+- **Domain knowledge** is governed and structured but too heavy for operational tracking
+- **Workspaces** are file-native for agents but invisible without the CLI/dashboard
+
+The hybrid model connects them via workspace.json, the linchpin between direction and execution.

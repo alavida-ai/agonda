@@ -1,0 +1,66 @@
+---
+title: workspace validate
+description: Health check across all workspaces — schema errors and filesystem drift.
+---
+
+## Usage
+
+```bash
+agonda workspace validate [--json]
+```
+
+## Output
+
+```
+Agonda
+Workspace validation
+
+✔ 2 workspaces valid
+```
+
+## What It Checks
+
+| Check | Severity | Description |
+|-------|----------|-------------|
+| Required fields present | Error | All required workspace.json fields |
+| Valid enums | Error | `status`, `work_type`, `linear.type` |
+| Milestone has project | Error | `linear.type: "milestone"` has `linear.project` |
+| skip-synthesis consistency | Error | Set only when status is `archived` |
+| Active workspace in `workspace/archive/` | Error | Something is wrong |
+| Archived workspace in `workspace/active/` | Warning | Needs moving |
+
+## Exit Codes
+
+- `0` — no errors (warnings are OK)
+- `2` — errors found
+
+## JSON Output
+
+```json
+{
+  "valid": false,
+  "workspaces_checked": 17,
+  "errors": [
+    {
+      "workspace": "event-driven",
+      "path": "workspace/archive/event-driven",
+      "check": "location_drift",
+      "severity": "error",
+      "message": "Active workspace in workspace/archive/"
+    }
+  ],
+  "warnings": [
+    {
+      "workspace": "synthesis-evals",
+      "path": "workspace/active/architecture/synthesis-evals",
+      "check": "location_drift",
+      "severity": "warning",
+      "message": "Archived workspace still in workspace/active/"
+    }
+  ]
+}
+```
+
+<Tip>
+  Run `workspace validate` regularly to catch drift between metadata and filesystem state. It's the bridge between the CLI's metadata-only transitions and the real directory structure.
+</Tip>

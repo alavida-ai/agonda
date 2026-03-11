@@ -1,0 +1,34 @@
+---
+title: workspace graduate
+description: Record that a workspace spawned an independent codebase.
+---
+
+## Usage
+
+```bash
+agonda workspace graduate website-planning --repo alavida-ai/website
+```
+
+## Flags
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--repo` | Yes | Repository identifier (e.g., `alavida-ai/website`) |
+
+## Behavior
+
+- Appends to the `graduated-to` array in workspace.json
+- Does **not** change status — works from any lifecycle state
+- A workspace can graduate to multiple repos
+
+```json
+{
+  "graduated-to": ["alavida-ai/website", "alavida-ai/agonda-cli"]
+}
+```
+
+## When to Use
+
+Not all workspaces graduate. Many produce domain knowledge only (via synthesis). Graduation means the workspace spawned a standalone codebase that now lives in its own repo.
+
+This is metadata for traceability — "where did this repo come from?" The answer is in the workspace that designed, researched, and prototyped it.

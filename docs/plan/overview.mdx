@@ -1,0 +1,41 @@
+---
+title: Plan Commands
+description: Manage your 12-week execution plan — goals, tactics, due dates, completion tracking.
+icon: bullseye
+---
+
+All plan commands operate on `domains/operations/knowledge/plan.yaml` in your repo.
+
+## Command Reference
+
+| Command | What it does |
+|---------|-------------|
+| [`plan view`](/plan/view) | Goals, tactics, due this week, overdue — one unified view |
+| [`plan validate`](/plan/validate) | Check plan.yaml for schema errors |
+| [`plan init`](/plan/init) | Set cycle metadata (name, dates, vision) |
+| [`plan goal`](/plan/goal) | Add, edit, remove, and list goals |
+| [`plan tactic`](/plan/tactic) | Add, edit, remove, list, and filter tactics |
+| [`plan tactic complete`](/plan/tactic-complete) | Mark deliverables done or reopen them |
+
+## What Lives in plan.yaml
+
+The plan is structured around the **12 Week Year** methodology:
+
+- **Cycle** — a 12-week execution period with start/end dates and a vision
+- **Goals** — 1-3 per cycle, each with a lag measure and target
+- **Tactics** — the actions that serve goals, owned by one person
+
+Tactics come in two types:
+
+<CardGroup cols={2}>
+  <Card title="Deliverables" icon="box-check">
+    Concrete outputs with a due week: "Ship the landing page by week 2." Has completion state.
+  </Card>
+  <Card title="Habits" icon="rotate" >
+    Recurring behaviors scored weekly: "Schedule 3 discovery calls per week." Never "completes."
+  </Card>
+</CardGroup>
+
+## Key Insight
+
+Score **tactics** (did you DO it?), not **goals** (did you ACHIEVE it?). You control whether you make the calls. You don't control whether they sign. Score what you control.

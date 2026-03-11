@@ -1,0 +1,37 @@
+---
+title: Workspace Commands
+description: Create, query, and lifecycle workspaces — the units of work agents and humans operate inside.
+icon: folder-open
+---
+
+Every workspace has a `workspace.json` manifest at its root, managed exclusively by the CLI. Agents and dashboards are read-only consumers.
+
+## Command Reference
+
+| Command | What it does |
+|---------|-------------|
+| [`workspace create`](/workspace/create) | Scaffold a new workspace with manifest |
+| [`workspace list`](/workspace/list) | List and filter all workspaces |
+| [`workspace link`](/workspace/link) | Connect workspace to a plan tactic or Linear object |
+| [`workspace complete`](/workspace/complete) | Close workspace — queue for synthesis or archive |
+| [`workspace archive`](/workspace/archive) | Terminal transition after synthesis completes |
+| [`workspace graduate`](/workspace/graduate) | Record that this workspace spawned a repo |
+| [`workspace validate`](/workspace/validate) | Check all workspace.json files for integrity |
+
+## Key Concepts
+
+A **workspace** is a directory in `workspace/` that exists to produce a specific deliverable or answer a specific question. It's the unit of work agents operate inside.
+
+A **workbench** is a plugin template that provides skills, hooks, and tools. One workbench spawns many workspaces.
+
+Every workspace carries:
+- **Who** owns it (`owner`)
+- **What** it's producing (`deliverable`)
+- **Which workbench** created it (`workbench`)
+- **Why** it matters (`tactic` → goal link)
+- **What kind** of work it is (`work_type`)
+- **Where it is** in its lifecycle (`status`)
+
+<Card title="Workspace Lifecycle" icon="arrows-spin" href="/concepts/lifecycle">
+  Understand the four statuses and how workspaces move through them.
+</Card>

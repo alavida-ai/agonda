@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agonda CLI"
+  short_description: "Use and explain the Agonda CLI"
+  default_prompt: "Use $agonda-cli to help me manage plans and workspaces with Agonda CLI."

@@ -1,0 +1,45 @@
+{
+  "name": "agonda",
+  "version": "0.1.0",
+  "description": "CLI for managing execution plans and workspace lifecycles in Agonda-structured repositories",
+  "type": "module",
+  "bin": {
+    "agonda": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "skills",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "test": "vitest",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "boxen": "^8.0.1",
+    "chalk": "^5.4.1",
+    "commander": "^14.0.1",
+    "figures": "^6.1.0",
+    "js-yaml": "^4.1.0",
+    "string-width": "^7.2.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.6.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": ["cli", "agonda", "workspace", "execution-plan"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alavida-ai/agonda.git"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

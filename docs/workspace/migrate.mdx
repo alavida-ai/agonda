@@ -1,0 +1,72 @@
+---
+title: workspace migrate
+description: Historical design note for a migration command that is not implemented in the current CLI.
+---
+
+<Warning>
+  `workspace migrate` is not implemented in the current Agonda CLI. This page is kept only as historical design context.
+</Warning>
+
+## Status
+
+There is currently no `agonda workspace migrate` command in the shipped CLI.
+
+If migration support is added later, this page should be rewritten to match the implementation before it is linked from navigation or the README.
+
+## Historical Design
+
+The original design proposed the following usage:
+
+```bash
+# Migrate all workspaces
+agonda workspace migrate --mapping migration-map.json
+
+# Preview without writing
+agonda workspace migrate --mapping migration-map.json --dry-run
+
+# Migrate a single workspace
+agonda workspace migrate --path workspace/active/barryos-website --mapping migration-map.json
+```
+
+## Proposed Flags
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--mapping` | Yes | JSON file with missing required fields per workspace |
+| `--path` | No | Single workspace to migrate (defaults to all) |
+| `--dry-run` | No | Show what would change without writing |
+
+## Proposed Mapping File
+
+The old `.workbench` format didn't have `owner`, `deliverable`, or `work_type`. Provide them in a mapping file:
+
+```json
+{
+  "barryos-website": {
+    "owner": "Thomas",
+    "deliverable": "Landing page with lead capture",
+    "work_type": "business"
+  },
+  "intent-adoption": {
+    "owner": "Alex",
+    "deliverable": "Evaluate TanStack Intent for Agonda",
+    "work_type": "internal"
+  }
+}
+```
+
+## Proposed Behavior
+
+For each workspace with a `.workbench` file:
+
+1. Reads the `.workbench` file (YAML or JSON)
+2. Maps old field names (`name` → `workbench`)
+3. Infers `status` from location (`workspace/archive/` → archived, otherwise active)
+4. Pulls `owner`, `deliverable`, `work_type` from the mapping file
+5. Carries forward existing fields (`domain`, `tactic`, `linear`)
+6. Writes `workspace.json`
+7. Deletes `.workbench`
+
+<Note>
+  This section describes the original intended migration behavior, not a currently available command.
+</Note>

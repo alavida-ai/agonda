@@ -1,0 +1,66 @@
+---
+title: plan validate
+description: Check plan.yaml for schema and integrity errors.
+---
+
+## Usage
+
+```bash
+agonda plan validate [--json]
+```
+
+## Output
+
+**Valid:**
+```
+Agonda
+Plan validation
+
+✔ plan.yaml is valid
+3 goals  |  14 tactics
+```
+
+**Invalid:**
+```
+✗ plan.yaml has 2 errors:
+  - Tactic T1.3 missing due_week (deliverable requires due_week)
+  - Tactic T2.5 references non-existent goal: G4
+```
+
+## What It Checks
+
+| Rule | Error message |
+|------|--------------|
+| Required fields on goals | "Goal {id} missing required field: {field}" |
+| Required fields on tactics | "Tactic {id} missing required field: {field}" |
+| Deliverables have `due_week` and `completed` | "Deliverable tactic {id} missing due_week" |
+| Habits have `cadence` | "Habit tactic {id} missing cadence" |
+| Goal references exist | "Tactic {id} references non-existent goal: {goal}" |
+| No duplicate IDs | "Duplicate goal/tactic ID: {id}" |
+| Valid dates | "Invalid date: {value}" |
+| Cycle start before end | "Cycle start must be before end" |
+| due_week within cycle range | "Tactic {id} due_week {n} outside cycle range 1-{max}" |
+| Completed tactics have timestamps | "Completed tactic {id} missing completed_at/completed_by" |
+| More than 3 goals | "Plan must have 1-3 goals, found {n}" |
+
+## JSON Output
+
+```json
+{
+  "valid": false,
+  "goals_count": 3,
+  "tactics_count": 14,
+  "errors": [
+    { "field": "tactics[4].due_week", "message": "Deliverable tactic T1.3 missing due_week" }
+  ]
+}
+```
+
+## Exit Codes
+
+- `0` — plan is valid
+- `2` — validation errors found
+
+<Note>
+  `plan validate` runs automatically after every write command (`goal add`, `tactic edit`, etc.). You don't need to run it manually unless you've edited plan.yaml by hand.
+</Note>
