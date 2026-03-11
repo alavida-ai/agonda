@@ -1,0 +1,95 @@
+---
+title: plan coverage
+description: See which plan tactics are backed by registered workspaces and which commitments still have no governed execution.
+---
+
+Shows plan tactics grouped by goal, annotated with registered workspace coverage.
+
+## Usage
+
+```bash
+agonda plan coverage [--goal <id>] [--uncovered-only] [--json]
+```
+
+## What It Answers
+
+- Which tactics already have linked workspaces?
+- Which commitments have no governed execution yet?
+- How much of the current plan is covered by registered workspaces?
+
+Coverage is strict by design: only registered workspaces with a matching `tactic` field count. Raw directories on disk do not satisfy coverage.
+
+## Filter Flags
+
+| Flag | What it does |
+|------|--------------|
+| `--goal G1` | Show one goal only |
+| `--uncovered-only` | Show only tactics with no linked workspace |
+
+## Output
+
+```text
+Agonda
+Plan coverage • Week 1 of 12 • Cycle 2
+
+G1 0/3
+  Close 3 paid client engagements
+  T1.3   Complete BarryOS website build using website-dev workbench
+         Thomas  wk 2  ✓ workspace/active/barryos-website
+  T1.4   Run rehearsal sales call with BarryOS founders (Morris + Ward)
+         Thomas  wk 1  ⚠ no workspace
+
+Coverage: 1/14 tactics linked (7%)
+```
+
+## JSON Output
+
+```bash
+agonda plan coverage --json
+```
+
+```json
+{
+  "cycle": {
+    "name": "Cycle 2",
+    "start": "2026-03-10",
+    "end": "2026-06-01",
+    "current_week": 1,
+    "max_weeks": 12
+  },
+  "goals": [
+    {
+      "id": "G1",
+      "name": "Close 3 paid client engagements",
+      "owner": "Thomas",
+      "current": 0,
+      "target": 3,
+      "tactics": [
+        {
+          "id": "T1.3",
+          "text": "Complete BarryOS website build using website-dev workbench",
+          "covered": true,
+          "workspace_path": "workspace/active/barryos-website"
+        },
+        {
+          "id": "T1.4",
+          "text": "Run rehearsal sales call with BarryOS founders (Morris + Ward)",
+          "covered": false,
+          "workspace_path": null
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_tactics": 14,
+    "covered_tactics": 1,
+    "uncovered_tactics": 13,
+    "coverage_percent": 7
+  },
+  "filters_applied": {}
+}
+```
+
+<Info>
+  Use `plan coverage` when you want to compare commitments against governed execution. Use [`workspace scan`](/workspace/scan) when you want to see raw work on disk that has not been registered yet.
+</Info>

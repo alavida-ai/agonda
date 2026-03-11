@@ -35,6 +35,14 @@ Due This Week (9)
   Add `--json` to any command for structured output that agents can consume.
 </Tip>
 
+## Check Plan Coverage
+
+```bash
+agonda plan coverage
+```
+
+Use this when you want to compare plan commitments against registered workspace execution.
+
 ## See All Workspaces
 
 ```bash
@@ -51,6 +59,16 @@ ACTIVE (2)
     workbench: website-dev
     deliverable: Landing page with lead capture live on agonda.ai
 ```
+
+`workspace list` is the governed view: only workspaces with `workspace.json` appear here.
+
+## Scan For Unregistered Work
+
+```bash
+agonda workspace scan
+```
+
+Use this when you want to surface active directories on disk that are visible in `workspace/active/` but not yet registered with the CLI.
 
 ## Create a Workspace
 
@@ -85,6 +103,12 @@ agonda workspace complete barryos-website \
 # What's stale?
 agonda workspace list --json | jq '.summary.stale_count'
 
+# Which commitments still have no workspace?
+agonda plan coverage --uncovered-only
+
+# Which active directories are unregistered?
+agonda workspace scan --json | jq '.summary.unregistered_count'
+
 # What's Thomas working on?
 agonda plan tactic list --owner Thomas
 
@@ -105,6 +129,8 @@ Agents should use `--json` for machine-readable output.
 ```bash
 agonda plan view --json | jq '.overdue[] | .id'
 agonda workspace list --json | jq '.summary.by_work_type'
+agonda plan coverage --json | jq '.summary.coverage_percent'
+agonda workspace scan --json | jq '.unregistered[] | .path'
 ```
 
 ## Next Steps
