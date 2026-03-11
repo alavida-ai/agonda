@@ -70,7 +70,7 @@ export async function scanWorkspaceDirectories(repoRoot: string): Promise<Discov
   const activeRoot = join(getWorkspaceRoot(repoRoot), "active");
   const directories: DiscoveredWorkspaceDir[] = [];
 
-  async function visit(currentDir: string): Promise<void> {
+  async function visit(currentDir: string, depth: number): Promise<void> {
     let entries: Array<{ name: string; isDirectory(): boolean; isFile(): boolean }>;
 
     try {
@@ -84,7 +84,7 @@ export async function scanWorkspaceDirectories(repoRoot: string): Promise<Discov
 
     const childDirectories = entries.filter((entry) => entry.isDirectory());
 
-    if (childDirectories.length === 0) {
+    if (childDirectories.length === 0 || depth >= 2) {
       directories.push({
         name: basename(currentDir),
         absoluteDir: currentDir,
@@ -94,11 +94,24 @@ export async function scanWorkspaceDirectories(repoRoot: string): Promise<Discov
     }
 
     for (const entry of childDirectories) {
-      await visit(join(currentDir, entry.name));
+      await visit(join(currentDir, entry.name), depth + 1);
     }
   }
 
-  await visit(activeRoot);
+  let entries: Array<{ name: string; isDirectory(): boolean; isFile(): boolean }>;
+
+  try {
+    entries = (await readdir(activeRoot, {
+      withFileTypes: true,
+      encoding: "utf8",
+    })) as Array<{ name: string; isDirectory(): boolean; isFile(): boolean }>;
+  } catch {
+    return [];
+  }
+
+  for (const entry of entries.filter((item) => item.isDirectory())) {
+    await visit(join(activeRoot, entry.name), 1);
+  }
 
   return directories.sort((left, right) => left.relativeDir.localeCompare(right.relativeDir));
 }
