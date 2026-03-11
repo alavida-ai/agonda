@@ -37,6 +37,7 @@ import {
   graduateWorkspaceCommand,
   linkWorkspaceCommand,
   listWorkspacesCommand,
+  scanWorkspaceDirectoriesCommand,
   validateWorkspacesCommand,
 } from "./application/workspace.js";
 import type { Tactic } from "./types.js";
@@ -302,6 +303,15 @@ withJsonOption(
     }),
     (payload) => renderWorkspaceList(payload, { verbose: process.argv.includes("--verbose") }),
   ),
+);
+
+withJsonOption(
+  workspace.command("scan").option("--stale-days <days>"),
+).action(
+  run(async (repoRoot, options) =>
+    scanWorkspaceDirectoriesCommand(repoRoot, {
+      staleDays: options.staleDays ? Number(options.staleDays) : undefined,
+    })),
 );
 
 withJsonOption(

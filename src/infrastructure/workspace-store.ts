@@ -1,3 +1,4 @@
+import { readdir } from "node:fs/promises";
 import { basename, join, relative } from "node:path";
 import { ensureDir, readTextFile, scanForFile, writeJsonFile, writeTextFile } from "./fs.js";
 import { getWorkspaceRoot } from "./repo.js";
@@ -10,6 +11,12 @@ export interface StoredWorkspace {
   absoluteDir: string;
   relativeDir: string;
   manifest: WorkspaceManifest;
+}
+
+export interface DiscoveredWorkspaceDir {
+  name: string;
+  absoluteDir: string;
+  relativeDir: string;
 }
 
 export async function scanWorkspaces(repoRoot: string): Promise<StoredWorkspace[]> {
@@ -57,4 +64,41 @@ export async function createWorkspaceFiles(
     `# ${name}\n\n## Status: IN PROGRESS\n\n## Deliverable\n${deliverable}\n\n## Next Step\n\n`,
   );
   await writeTextFile(join(absoluteDir, "LEARNINGS.md"), "");
+}
+
+export async function scanWorkspaceDirectories(repoRoot: string): Promise<DiscoveredWorkspaceDir[]> {
+  const activeRoot = join(getWorkspaceRoot(repoRoot), "active");
+  const directories: DiscoveredWorkspaceDir[] = [];
+
+  async function visit(currentDir: string): Promise<void> {
+    let entries: Array<{ name: string; isDirectory(): boolean; isFile(): boolean }>;
+
+    try {
+      entries = (await readdir(currentDir, {
+        withFileTypes: true,
+        encoding: "utf8",
+      })) as Array<{ name: string; isDirectory(): boolean; isFile(): boolean }>;
+    } catch {
+      return;
+    }
+
+    const childDirectories = entries.filter((entry) => entry.isDirectory());
+
+    if (childDirectories.length === 0) {
+      directories.push({
+        name: basename(currentDir),
+        absoluteDir: currentDir,
+        relativeDir: relative(repoRoot, currentDir).replaceAll("\\", "/"),
+      });
+      return;
+    }
+
+    for (const entry of childDirectories) {
+      await visit(join(currentDir, entry.name));
+    }
+  }
+
+  await visit(activeRoot);
+
+  return directories.sort((left, right) => left.relativeDir.localeCompare(right.relativeDir));
 }

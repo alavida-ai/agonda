@@ -1,7 +1,50 @@
 import { describe, expect, it } from "vitest";
-import { createTestRepo, createWorkspace, runCli } from "./helpers";
+import { createTestRepo, createWorkspace, createWorkspaceDirectory, runCli } from "./helpers";
 
 describe("workspace commands", () => {
+  it("scans unregistered workspace directories as json", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspace(repoRoot, "workspace/active/barryos-website", {
+      workbench: "website-dev",
+      domain: "value",
+      created: "2026-03-10",
+      status: "active",
+      owner: "Thomas",
+      deliverable: "Landing page with lead capture",
+      work_type: "business",
+      tactic: "T1.3",
+      linear: null,
+      "graduated-to": [],
+      "skip-synthesis": null,
+    });
+
+    await createWorkspaceDirectory(
+      repoRoot,
+      "workspace/active/architecture/intent-adoption",
+    );
+
+    const result = await runCli(["workspace", "scan", "--json"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+
+    const payload = JSON.parse(result.stdout);
+    expect(payload.unregistered).toEqual([
+      expect.objectContaining({
+        name: "intent-adoption",
+        path: "workspace/active/architecture/intent-adoption",
+        last_activity: null,
+        last_activity_days_ago: null,
+        stale: false,
+      }),
+    ]);
+    expect(payload.summary).toMatchObject({
+      registered_count: 1,
+      unregistered_count: 1,
+      stale_days: 30,
+    });
+  });
+
   it("creates and lists a workspace", async () => {
     const repoRoot = await createTestRepo();
 

@@ -47,6 +47,13 @@ export async function createWorkspace(
   );
 }
 
+export async function createWorkspaceDirectory(
+  repoRoot: string,
+  relativePath: string,
+): Promise<void> {
+  await mkdir(join(repoRoot, relativePath), { recursive: true });
+}
+
 export async function runCli(args: string[], cwd: string): Promise<CliResult> {
   const entrypoint = resolve("src/index.ts");
   const tsxCli = resolve("node_modules/tsx/dist/cli.mjs");
