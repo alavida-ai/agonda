@@ -12,6 +12,7 @@ import {
   renderPlanValidate,
   renderTacticList,
   renderWorkspaceList,
+  renderWorkspaceScan,
   renderWorkspaceValidate,
 } from "./presentation/output.js";
 import {
@@ -311,7 +312,7 @@ withJsonOption(
   run(async (repoRoot, options) =>
     scanWorkspaceDirectoriesCommand(repoRoot, {
       staleDays: options.staleDays ? Number(options.staleDays) : undefined,
-    })),
+    }), renderWorkspaceScan),
 );
 
 withJsonOption(

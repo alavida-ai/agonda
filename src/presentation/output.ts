@@ -35,6 +35,22 @@ interface WorkspaceValidatePayload {
   warnings: Array<{ workspace: string; message: string }>;
 }
 
+interface WorkspaceScanPayload {
+  unregistered: Array<{
+    name: string;
+    path: string;
+    last_activity?: string | null;
+    last_activity_days_ago?: number | null;
+    stale: boolean;
+  }>;
+  summary: {
+    registered_count: number;
+    unregistered_count: number;
+    stale_count: number;
+    stale_days: number;
+  };
+}
+
 interface PlanValidatePayload {
   valid: boolean;
   goals_count: number;
@@ -235,6 +251,41 @@ export function renderWorkspaceValidate(payload: unknown): string {
   }
 
   return lines.join("\n");
+}
+
+export function renderWorkspaceScan(payload: unknown): string {
+  const data = payload as WorkspaceScanPayload;
+  const lines = [
+    brandBanner(
+      "Agonda",
+      `Workspace scan • ${data.summary.registered_count} registered • ${data.summary.unregistered_count} unknown`,
+    ),
+    sectionTitle("UNREGISTERED", `(${data.unregistered.length})`),
+  ];
+
+  if (data.unregistered.length === 0) {
+    lines.push(`  ${subtle("No unregistered workspace directories found.")}`);
+  } else {
+    lines.push("");
+
+    for (const directory of data.unregistered) {
+      const meta = [formatLastActivity(directory.last_activity_days_ago)];
+      if (directory.stale) {
+        meta.push(symbol("warning"));
+      }
+
+      lines.push(`  ${directory.path}  ${meta.filter(Boolean).join("  ")}`);
+    }
+  }
+
+  lines.push("");
+  lines.push(
+    subtle(
+      `Stale ${data.summary.stale_count}  |  threshold ${data.summary.stale_days}d`,
+    ),
+  );
+
+  return lines.join("\n").trimEnd();
 }
 
 export function renderPlanValidate(payload: unknown): string {

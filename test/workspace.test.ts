@@ -115,6 +115,30 @@ describe("workspace commands", () => {
     });
   });
 
+  it("renders workspace scan for humans", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspaceDirectory(
+      repoRoot,
+      "workspace/active/architecture/intent-adoption",
+    );
+    await commitWorkspacePath(
+      repoRoot,
+      "workspace/active/architecture/intent-adoption",
+      "2026-03-01T12:00:00Z",
+    );
+
+    const result = await runCli(["workspace", "scan", "--stale-days", "5"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("Agonda");
+    expect(result.stdout).toContain("Workspace scan");
+    expect(result.stdout).toContain("UNREGISTERED");
+    expect(result.stdout).toContain("workspace/active/architecture/intent-adoption");
+    expect(result.stdout).toContain("10d ago");
+    expect(result.stdout).toContain("Stale 1  |  threshold 5d");
+  });
+
   it("creates and lists a workspace", async () => {
     const repoRoot = await createTestRepo();
 
