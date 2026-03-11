@@ -4,12 +4,15 @@
   "description": "CLI for managing execution plans and workspace lifecycles in Agonda-structured repositories",
   "type": "module",
   "bin": {
-    "agonda": "./dist/index.js"
+    "agonda": "./dist/index.js",
+    "intent": "./bin/intent.js"
   },
   "files": [
     "dist",
     "skills",
-    "README.md"
+    "README.md",
+    "bin",
+    "!skills/_artifacts"
   ],
   "publishConfig": {
     "access": "public",
@@ -31,6 +34,7 @@
     "string-width": "^7.2.0"
   },
   "devDependencies": {
+    "@tanstack/intent": "^0.0.14",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.6.0",
     "tsx": "^4.20.6",
