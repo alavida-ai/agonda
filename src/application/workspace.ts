@@ -5,7 +5,12 @@ import { ValidationError } from "../errors.js";
 import { getTodayIso } from "../domain/plan.js";
 import { getLastActivity } from "../infrastructure/git.js";
 import { getWorkspaceRoot } from "../infrastructure/repo.js";
-import { createWorkspaceFiles, saveWorkspace, scanWorkspaces } from "../infrastructure/workspace-store.js";
+import {
+  createWorkspaceFiles,
+  saveWorkspace,
+  scanWorkspaceDirectories,
+  scanWorkspaces,
+} from "../infrastructure/workspace-store.js";
 import { loadPlan } from "../infrastructure/plan-store.js";
 import type { WorkspaceManifest, WorkspaceStatus } from "../types.js";
 
@@ -173,6 +178,50 @@ export async function listWorkspacesCommand(
     filters_applied: Object.fromEntries(
       Object.entries(filters).filter(([, value]) => value !== undefined),
     ),
+  };
+}
+
+export async function scanWorkspaceDirectoriesCommand(
+  repoRoot: string,
+  input: { staleDays?: number } = {},
+): Promise<Record<string, unknown>> {
+  const staleDays = input.staleDays ?? 30;
+  if (!Number.isFinite(staleDays) || staleDays < 0) {
+    throw new ValidationError("stale-days must be a non-negative number");
+  }
+  const registered = await scanWorkspaces(repoRoot);
+  const discovered = await scanWorkspaceDirectories(repoRoot);
+  const registeredDirs = registered.map((workspace) => workspace.relativeDir);
+  const unregistered = discovered.filter((directory) =>
+    !registeredDirs.some(
+      (registeredDir) =>
+        directory.relativeDir === registeredDir ||
+        directory.relativeDir.startsWith(`${registeredDir}/`),
+    ),
+  );
+
+  const hydrated = await Promise.all(
+    unregistered.map(async (directory) => {
+      const activity = await getLastActivity(repoRoot, directory.relativeDir);
+
+      return {
+        name: directory.name,
+        path: directory.relativeDir,
+        last_activity: activity.date,
+        last_activity_days_ago: activity.daysAgo,
+        stale: activity.daysAgo !== null && activity.daysAgo >= staleDays,
+      };
+    }),
+  );
+
+  return {
+    unregistered: hydrated,
+    summary: {
+      registered_count: registered.length,
+      unregistered_count: hydrated.length,
+      stale_count: hydrated.filter((directory) => directory.stale).length,
+      stale_days: staleDays,
+    },
   };
 }
 

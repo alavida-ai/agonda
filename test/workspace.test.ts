@@ -1,7 +1,177 @@
 import { describe, expect, it } from "vitest";
-import { createTestRepo, createWorkspace, runCli } from "./helpers";
+import {
+  commitWorkspacePath,
+  createTestRepo,
+  createWorkspace,
+  createWorkspaceDirectory,
+  runCli,
+} from "./helpers";
 
 describe("workspace commands", () => {
+  it("scans unregistered workspace directories as json", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspace(repoRoot, "workspace/active/barryos-website", {
+      workbench: "website-dev",
+      domain: "value",
+      created: "2026-03-10",
+      status: "active",
+      owner: "Thomas",
+      deliverable: "Landing page with lead capture",
+      work_type: "business",
+      tactic: "T1.3",
+      linear: null,
+      "graduated-to": [],
+      "skip-synthesis": null,
+    });
+
+    await createWorkspaceDirectory(
+      repoRoot,
+      "workspace/active/architecture/intent-adoption",
+    );
+
+    const result = await runCli(["workspace", "scan", "--json"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+
+    const payload = JSON.parse(result.stdout);
+    expect(payload.unregistered).toEqual([
+      expect.objectContaining({
+        name: "intent-adoption",
+        path: "workspace/active/architecture/intent-adoption",
+        last_activity: null,
+        last_activity_days_ago: null,
+        stale: false,
+      }),
+    ]);
+    expect(payload.summary).toMatchObject({
+      registered_count: 1,
+      unregistered_count: 1,
+      stale_days: 30,
+    });
+  });
+
+  it("uses a default stale threshold of 30 days for workspace scan", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspaceDirectory(
+      repoRoot,
+      "workspace/active/architecture/intent-adoption",
+    );
+    await commitWorkspacePath(
+      repoRoot,
+      "workspace/active/architecture/intent-adoption",
+      "2026-03-01T12:00:00Z",
+    );
+
+    const result = await runCli(["workspace", "scan", "--json"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+
+    const payload = JSON.parse(result.stdout);
+    expect(payload.unregistered).toEqual([
+      expect.objectContaining({
+        path: "workspace/active/architecture/intent-adoption",
+        last_activity: "2026-03-01",
+        last_activity_days_ago: 10,
+        stale: false,
+      }),
+    ]);
+    expect(payload.summary).toMatchObject({
+      stale_count: 0,
+      stale_days: 30,
+    });
+  });
+
+  it("respects a custom stale threshold for workspace scan", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspaceDirectory(
+      repoRoot,
+      "workspace/active/architecture/intent-adoption",
+    );
+    await commitWorkspacePath(
+      repoRoot,
+      "workspace/active/architecture/intent-adoption",
+      "2026-03-01T12:00:00Z",
+    );
+
+    const result = await runCli(["workspace", "scan", "--stale-days", "5", "--json"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+
+    const payload = JSON.parse(result.stdout);
+    expect(payload.unregistered).toEqual([
+      expect.objectContaining({
+        path: "workspace/active/architecture/intent-adoption",
+        last_activity: "2026-03-01",
+        last_activity_days_ago: 10,
+        stale: true,
+      }),
+    ]);
+    expect(payload.summary).toMatchObject({
+      stale_count: 1,
+      stale_days: 5,
+    });
+  });
+
+  it("renders workspace scan for humans", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspaceDirectory(
+      repoRoot,
+      "workspace/active/architecture/intent-adoption",
+    );
+    await commitWorkspacePath(
+      repoRoot,
+      "workspace/active/architecture/intent-adoption",
+      "2026-03-01T12:00:00Z",
+    );
+
+    const result = await runCli(["workspace", "scan", "--stale-days", "5"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("Agonda");
+    expect(result.stdout).toContain("Workspace scan");
+    expect(result.stdout).toContain("UNREGISTERED");
+    expect(result.stdout).toContain("workspace/active/architecture/intent-adoption");
+    expect(result.stdout).toContain("10d ago");
+    expect(result.stdout).toContain("Stale 1  |  threshold 5d");
+  });
+
+  it("does not report nested directories inside a registered workspace", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspace(repoRoot, "workspace/active/barryos-website", {
+      workbench: "website-dev",
+      domain: "value",
+      created: "2026-03-10",
+      status: "active",
+      owner: "Thomas",
+      deliverable: "Landing page with lead capture",
+      work_type: "business",
+      tactic: "T1.3",
+      linear: null,
+      "graduated-to": [],
+      "skip-synthesis": null,
+    });
+    await createWorkspaceDirectory(repoRoot, "workspace/active/barryos-website/research/notes");
+
+    const result = await runCli(["workspace", "scan", "--json"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout).unregistered).toEqual([]);
+  });
+
+  it("rejects an invalid stale threshold", async () => {
+    const repoRoot = await createTestRepo();
+
+    const result = await runCli(["workspace", "scan", "--stale-days", "nope"], repoRoot);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toContain("stale-days must be a non-negative number");
+  });
+
   it("creates and lists a workspace", async () => {
     const repoRoot = await createTestRepo();
 

@@ -35,6 +35,22 @@ interface WorkspaceValidatePayload {
   warnings: Array<{ workspace: string; message: string }>;
 }
 
+interface WorkspaceScanPayload {
+  unregistered: Array<{
+    name: string;
+    path: string;
+    last_activity?: string | null;
+    last_activity_days_ago?: number | null;
+    stale: boolean;
+  }>;
+  summary: {
+    registered_count: number;
+    unregistered_count: number;
+    stale_count: number;
+    stale_days: number;
+  };
+}
+
 interface PlanValidatePayload {
   valid: boolean;
   goals_count: number;
@@ -95,6 +111,38 @@ interface PlanViewPayload {
     due_week?: number;
     workspace_path?: string | null;
   }>;
+}
+
+interface PlanCoveragePayload {
+  cycle: {
+    name: string;
+    current_week: number;
+    max_weeks: number;
+  };
+  goals: Array<{
+    id: string;
+    name: string;
+    owner: string;
+    current: number;
+    target: number;
+    tactics: Array<{
+      id: string;
+      text: string;
+      owner: string;
+      type: string;
+      cadence?: string;
+      due_week?: number;
+      workspace_path?: string | null;
+      covered: boolean;
+    }>;
+  }>;
+  summary: {
+    total_tactics: number;
+    covered_tactics: number;
+    uncovered_tactics: number;
+    coverage_percent: number;
+  };
+  filters_applied: Record<string, unknown>;
 }
 
 export function printSuccess(
@@ -203,6 +251,41 @@ export function renderWorkspaceValidate(payload: unknown): string {
   }
 
   return lines.join("\n");
+}
+
+export function renderWorkspaceScan(payload: unknown): string {
+  const data = payload as WorkspaceScanPayload;
+  const lines = [
+    brandBanner(
+      "Agonda",
+      `Workspace scan • ${data.summary.registered_count} registered • ${data.summary.unregistered_count} unknown`,
+    ),
+    sectionTitle("UNREGISTERED", `(${data.unregistered.length})`),
+  ];
+
+  if (data.unregistered.length === 0) {
+    lines.push(`  ${subtle("No unregistered workspace directories found.")}`);
+  } else {
+    lines.push("");
+
+    for (const directory of data.unregistered) {
+      const meta = [formatLastActivity(directory.last_activity_days_ago)];
+      if (directory.stale) {
+        meta.push(symbol("warning"));
+      }
+
+      lines.push(`  ${directory.path}  ${meta.filter(Boolean).join("  ")}`);
+    }
+  }
+
+  lines.push("");
+  lines.push(
+    subtle(
+      `Stale ${data.summary.stale_count}  |  threshold ${data.summary.stale_days}d`,
+    ),
+  );
+
+  return lines.join("\n").trimEnd();
 }
 
 export function renderPlanValidate(payload: unknown): string {
@@ -336,6 +419,58 @@ export function renderPlanView(payload: unknown): string {
   }
 
   return lines.join("\n");
+}
+
+export function renderPlanCoverage(payload: unknown): string {
+  const data = payload as PlanCoveragePayload;
+  const lines = [
+    brandBanner(
+      "Agonda",
+      `Plan coverage • Week ${data.cycle.current_week} of ${data.cycle.max_weeks} • ${data.cycle.name}`,
+    ),
+  ];
+
+  if (Object.keys(data.filters_applied).length > 0) {
+    lines.push(subtle(`filters: ${formatFilters(data.filters_applied)}`));
+    lines.push("");
+  }
+
+  for (const goal of data.goals) {
+    lines.push(sectionTitle(goal.id, `${goal.current}/${goal.target}`));
+    lines.push(`  ${goal.name}`);
+
+    if (goal.tactics.length === 0) {
+      lines.push(`  ${subtle("No tactics match the current filters.")}`);
+      lines.push("");
+      continue;
+    }
+
+    for (const tactic of goal.tactics) {
+      const coverage = tactic.covered
+        ? `${symbol("success")} ${tactic.workspace_path}`
+        : `${symbol("warning")} no workspace`;
+      const meta = [
+        tactic.owner,
+        tactic.type === "deliverable" ? `wk ${tactic.due_week}` : tactic.cadence,
+        coverage,
+      ]
+        .filter(Boolean)
+        .join("  ");
+
+      lines.push(`  ${padText(tactic.id, 6)} ${truncateText(tactic.text, 72)}`);
+      lines.push(`       ${subtle(meta)}`);
+    }
+
+    lines.push("");
+  }
+
+  lines.push(
+    subtle(
+      `Coverage: ${data.summary.covered_tactics}/${data.summary.total_tactics} tactics linked (${data.summary.coverage_percent}%)`,
+    ),
+  );
+
+  return lines.join("\n").trimEnd();
 }
 
 function renderDefaultHuman(payload: unknown): string {

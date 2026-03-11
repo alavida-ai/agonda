@@ -1,0 +1,68 @@
+---
+title: workspace scan
+description: Find active workspace directories on disk that are not registered with a workspace.json manifest.
+---
+
+This is an observability command, not a lifecycle command. It shows work visible under `workspace/active/` that the CLI cannot govern yet because no `workspace.json` exists there.
+
+## Usage
+
+```bash
+agonda workspace scan [--stale-days <days>] [--json]
+```
+
+## What It Answers
+
+- Which active workspace directories exist on disk without registration?
+- Which of those directories look stale from git activity?
+- How much org work is visible outside normal workspace governance?
+
+## Flags
+
+| Flag | What it does |
+|------|--------------|
+| `--stale-days 30` | Mark directories stale when the last git activity is at least this many days old |
+
+## Output
+
+```text
+Agonda
+Workspace scan • 15 registered • 31 unknown
+
+UNREGISTERED (31)
+
+  workspace/active/architecture/intent-adoption  10d ago
+  workspace/active/meetings/founder-sync         42d ago  ⚠
+
+Stale 8  |  threshold 30d
+```
+
+## JSON Output
+
+```bash
+agonda workspace scan --json
+```
+
+```json
+{
+  "unregistered": [
+    {
+      "name": "intent-adoption",
+      "path": "workspace/active/architecture/intent-adoption",
+      "last_activity": "2026-03-01",
+      "last_activity_days_ago": 10,
+      "stale": false
+    }
+  ],
+  "summary": {
+    "registered_count": 15,
+    "unregistered_count": 31,
+    "stale_count": 8,
+    "stale_days": 30
+  }
+}
+```
+
+<Info>
+  [`workspace list`](/workspace/list) only shows governed workspaces with a `workspace.json` manifest. `workspace scan` shows the visible-but-ungoverned side of the org's work.
+</Info>

@@ -7,10 +7,12 @@ import {
   printSuccess,
   renderAction,
   renderGoalList,
+  renderPlanCoverage,
   renderPlanView,
   renderPlanValidate,
   renderTacticList,
   renderWorkspaceList,
+  renderWorkspaceScan,
   renderWorkspaceValidate,
 } from "./presentation/output.js";
 import {
@@ -21,6 +23,7 @@ import {
   editTactic,
   initPlan,
   listGoals,
+  planCoverage,
   listTactics,
   removeGoal,
   removeTactic,
@@ -35,6 +38,7 @@ import {
   graduateWorkspaceCommand,
   linkWorkspaceCommand,
   listWorkspacesCommand,
+  scanWorkspaceDirectoriesCommand,
   validateWorkspacesCommand,
 } from "./application/workspace.js";
 import type { Tactic } from "./types.js";
@@ -76,6 +80,16 @@ const plan = program.commands.at(-1)!;
 
 withJsonOption(plan.command("view")).action(
   run(async (repoRoot) => viewPlan(repoRoot), renderPlanView),
+);
+
+withJsonOption(
+  plan.command("coverage").option("--goal <id>").option("--uncovered-only"),
+).action(
+  run(async (repoRoot, options) =>
+    planCoverage(repoRoot, {
+      goal: options.goal ? String(options.goal) : undefined,
+      uncoveredOnly: Boolean(options.uncoveredOnly) || undefined,
+    }), renderPlanCoverage),
 );
 
 withJsonOption(plan.command("validate")).action(
@@ -290,6 +304,15 @@ withJsonOption(
     }),
     (payload) => renderWorkspaceList(payload, { verbose: process.argv.includes("--verbose") }),
   ),
+);
+
+withJsonOption(
+  workspace.command("scan").option("--stale-days <days>"),
+).action(
+  run(async (repoRoot, options) =>
+    scanWorkspaceDirectoriesCommand(repoRoot, {
+      staleDays: options.staleDays ? Number(options.staleDays) : undefined,
+    }), renderWorkspaceScan),
 );
 
 withJsonOption(

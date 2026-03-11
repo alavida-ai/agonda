@@ -2,7 +2,7 @@ import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { createTestRepo, runCli } from "./helpers";
+import { createTestRepo, createWorkspace, runCli } from "./helpers";
 
 describe("plan commands", () => {
   it("views the plan as json with computed cycle metadata", async () => {
@@ -18,6 +18,137 @@ describe("plan commands", () => {
     expect(payload.goals).toHaveLength(3);
     expect(payload.due_this_week.some((tactic: { id: string }) => tactic.id === "T2.1")).toBe(true);
     expect(payload.habits.some((tactic: { id: string }) => tactic.id === "T1.1")).toBe(true);
+  });
+
+  it("reports tactic coverage as json", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspace(repoRoot, "workspace/active/barryos-website", {
+      workbench: "website-dev",
+      domain: "value",
+      created: "2026-03-10",
+      status: "active",
+      owner: "Thomas",
+      deliverable: "Landing page with lead capture",
+      work_type: "business",
+      tactic: "T1.3",
+      linear: null,
+      "graduated-to": [],
+      "skip-synthesis": null,
+    });
+
+    const result = await runCli(["plan", "coverage", "--json"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+
+    const payload = JSON.parse(result.stdout);
+    expect(payload.cycle.name).toBe("Cycle 2");
+    expect(payload.goals).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "G1",
+          tactics: expect.arrayContaining([
+            expect.objectContaining({
+              id: "T1.3",
+              covered: true,
+              workspace_path: "workspace/active/barryos-website",
+            }),
+            expect.objectContaining({
+              id: "T1.1",
+              covered: false,
+              workspace_path: null,
+            }),
+          ]),
+        }),
+      ]),
+    );
+    expect(payload.summary).toMatchObject({
+      total_tactics: 14,
+      covered_tactics: 1,
+      uncovered_tactics: 13,
+      coverage_percent: 7,
+    });
+  });
+
+  it("filters coverage to a single goal", async () => {
+    const repoRoot = await createTestRepo();
+
+    const result = await runCli(["plan", "coverage", "--goal", "G1", "--json"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+
+    const payload = JSON.parse(result.stdout);
+    expect(payload.goals).toHaveLength(1);
+    expect(payload.goals[0].id).toBe("G1");
+    expect(payload.filters_applied).toMatchObject({ goal: "G1" });
+    expect(payload.summary.total_tactics).toBe(payload.goals[0].tactics.length);
+  });
+
+  it("filters coverage to uncovered tactics only", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspace(repoRoot, "workspace/active/barryos-website", {
+      workbench: "website-dev",
+      domain: "value",
+      created: "2026-03-10",
+      status: "active",
+      owner: "Thomas",
+      deliverable: "Landing page with lead capture",
+      work_type: "business",
+      tactic: "T1.3",
+      linear: null,
+      "graduated-to": [],
+      "skip-synthesis": null,
+    });
+
+    const result = await runCli(["plan", "coverage", "--uncovered-only", "--json"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+
+    const payload = JSON.parse(result.stdout);
+    const tactics = payload.goals.flatMap(
+      (goal: { tactics: Array<{ id: string; covered: boolean }> }) => goal.tactics,
+    );
+
+    expect(tactics).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: "T1.3" })]),
+    );
+    expect(tactics.every((tactic: { covered: boolean }) => tactic.covered === false)).toBe(true);
+    expect(payload.summary).toMatchObject({
+      total_tactics: 13,
+      covered_tactics: 0,
+      uncovered_tactics: 13,
+      coverage_percent: 0,
+    });
+    expect(payload.filters_applied).toMatchObject({ uncovered_only: true });
+  });
+
+  it("renders plan coverage for humans", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspace(repoRoot, "workspace/active/barryos-website", {
+      workbench: "website-dev",
+      domain: "value",
+      created: "2026-03-10",
+      status: "active",
+      owner: "Thomas",
+      deliverable: "Landing page with lead capture",
+      work_type: "business",
+      tactic: "T1.3",
+      linear: null,
+      "graduated-to": [],
+      "skip-synthesis": null,
+    });
+
+    const result = await runCli(["plan", "coverage"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("Agonda");
+    expect(result.stdout).toContain("Plan coverage");
+    expect(result.stdout).toContain("G1");
+    expect(result.stdout).toContain("workspace/active/barryos-website");
+    expect(result.stdout).toContain("no workspace");
+    expect(result.stdout).toContain("Coverage: 1/14 tactics linked (7%)");
   });
 
   it("validates a correct plan", async () => {

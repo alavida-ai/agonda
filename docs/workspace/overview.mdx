@@ -12,6 +12,7 @@ Every workspace has a `workspace.json` manifest at its root, managed exclusively
 |---------|-------------|
 | [`workspace create`](/workspace/create) | Scaffold a new workspace with manifest |
 | [`workspace list`](/workspace/list) | List and filter all workspaces |
+| [`workspace scan`](/workspace/scan) | Show active workspace directories on disk that have no `workspace.json` |
 | [`workspace link`](/workspace/link) | Connect workspace to a plan tactic or Linear object |
 | [`workspace complete`](/workspace/complete) | Close workspace — queue for synthesis or archive |
 | [`workspace archive`](/workspace/archive) | Terminal transition after synthesis completes |
@@ -31,6 +32,8 @@ Every workspace carries:
 - **Why** it matters (`tactic` → goal link)
 - **What kind** of work it is (`work_type`)
 - **Where it is** in its lifecycle (`status`)
+
+`workspace list` shows governed workspaces with manifests. `workspace scan` shows visible directories under `workspace/active/` that have not been formally registered yet.
 
 <Card title="Workspace Lifecycle" icon="arrows-spin" href="/concepts/lifecycle">
   Understand the four statuses and how workspaces move through them.

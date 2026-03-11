@@ -75,6 +75,61 @@ export async function viewPlan(repoRoot: string): Promise<Record<string, unknown
   };
 }
 
+export async function planCoverage(
+  repoRoot: string,
+  filters: { goal?: string; uncoveredOnly?: boolean } = {},
+): Promise<Record<string, unknown>> {
+  const plan = await loadPlan(repoRoot);
+  const workspaces = await scanWorkspaces(repoRoot);
+  const workspaceByTactic = getWorkspaceByTactic(plan, workspaces);
+  const currentWeek = getCurrentWeek(plan);
+  const maxWeeks = getMaxWeeks(plan);
+
+  const goals = plan.goals
+    .filter((goal) => !filters.goal || goal.id === filters.goal)
+    .map((goal) => {
+      const tactics = plan.tactics
+        .filter((tactic) => tactic.goal === goal.id)
+        .map((tactic) => ({
+          ...tactic,
+          workspace_path: workspaceByTactic.get(tactic.id) ?? null,
+          covered: workspaceByTactic.has(tactic.id),
+        }))
+        .filter((tactic) => !filters.uncoveredOnly || !tactic.covered);
+
+      return {
+        ...goal,
+        tactics,
+      };
+    });
+
+  const allTactics = goals.flatMap((goal) => goal.tactics);
+  const coveredTactics = allTactics.filter((tactic) => tactic.covered).length;
+
+  return {
+    cycle: {
+      ...plan.cycle,
+      current_week: currentWeek,
+      max_weeks: maxWeeks,
+    },
+    goals,
+    summary: {
+      total_tactics: allTactics.length,
+      covered_tactics: coveredTactics,
+      uncovered_tactics: allTactics.length - coveredTactics,
+      coverage_percent: allTactics.length === 0
+        ? 0
+        : Math.round((coveredTactics / allTactics.length) * 100),
+    },
+    filters_applied: Object.fromEntries(
+      Object.entries({
+        goal: filters.goal,
+        uncovered_only: filters.uncoveredOnly || undefined,
+      }).filter(([, value]) => value !== undefined),
+    ),
+  };
+}
+
 function attachWorkspace(
   tactic: Tactic,
   workspaceByTactic: Map<string, string>,
