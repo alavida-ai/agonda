@@ -1,6 +1,6 @@
 {
   "name": "@alavida/agonda",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "CLI for managing execution plans and workspace lifecycles in Agonda-structured repositories",
   "type": "module",
   "bin": {
