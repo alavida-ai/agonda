@@ -163,6 +163,25 @@ describe("workspace commands", () => {
     expect(JSON.parse(result.stdout).unregistered).toEqual([]);
   });
 
+  it("does not recurse past second-level workspace directories", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspaceDirectory(
+      repoRoot,
+      "workspace/active/evals/discover-workspace/iteration-1/track-a/with-skill/outputs",
+    );
+
+    const result = await runCli(["workspace", "scan", "--json"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout).unregistered).toEqual([
+      expect.objectContaining({
+        name: "discover-workspace",
+        path: "workspace/active/evals/discover-workspace",
+      }),
+    ]);
+  });
+
   it("rejects an invalid stale threshold", async () => {
     const repoRoot = await createTestRepo();
 
