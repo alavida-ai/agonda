@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { createTestRepo, createWorkspace, createWorkspaceDirectory, runCli } from "./helpers";
+import {
+  commitWorkspacePath,
+  createTestRepo,
+  createWorkspace,
+  createWorkspaceDirectory,
+  runCli,
+} from "./helpers";
 
 describe("workspace commands", () => {
   it("scans unregistered workspace directories as json", async () => {
@@ -42,6 +48,70 @@ describe("workspace commands", () => {
       registered_count: 1,
       unregistered_count: 1,
       stale_days: 30,
+    });
+  });
+
+  it("uses a default stale threshold of 30 days for workspace scan", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspaceDirectory(
+      repoRoot,
+      "workspace/active/architecture/intent-adoption",
+    );
+    await commitWorkspacePath(
+      repoRoot,
+      "workspace/active/architecture/intent-adoption",
+      "2026-03-01T12:00:00Z",
+    );
+
+    const result = await runCli(["workspace", "scan", "--json"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+
+    const payload = JSON.parse(result.stdout);
+    expect(payload.unregistered).toEqual([
+      expect.objectContaining({
+        path: "workspace/active/architecture/intent-adoption",
+        last_activity: "2026-03-01",
+        last_activity_days_ago: 10,
+        stale: false,
+      }),
+    ]);
+    expect(payload.summary).toMatchObject({
+      stale_count: 0,
+      stale_days: 30,
+    });
+  });
+
+  it("respects a custom stale threshold for workspace scan", async () => {
+    const repoRoot = await createTestRepo();
+
+    await createWorkspaceDirectory(
+      repoRoot,
+      "workspace/active/architecture/intent-adoption",
+    );
+    await commitWorkspacePath(
+      repoRoot,
+      "workspace/active/architecture/intent-adoption",
+      "2026-03-01T12:00:00Z",
+    );
+
+    const result = await runCli(["workspace", "scan", "--stale-days", "5", "--json"], repoRoot);
+
+    expect(result.exitCode).toBe(0);
+
+    const payload = JSON.parse(result.stdout);
+    expect(payload.unregistered).toEqual([
+      expect.objectContaining({
+        path: "workspace/active/architecture/intent-adoption",
+        last_activity: "2026-03-01",
+        last_activity_days_ago: 10,
+        stale: true,
+      }),
+    ]);
+    expect(payload.summary).toMatchObject({
+      stale_count: 1,
+      stale_days: 5,
     });
   });
 

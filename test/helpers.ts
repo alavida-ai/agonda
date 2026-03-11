@@ -19,7 +19,7 @@ export interface TestRepoOptions {
 export async function createTestRepo(options: TestRepoOptions = {}): Promise<string> {
   const repoRoot = await mkdtemp(join(tmpdir(), "agonda-"));
 
-  await mkdir(join(repoRoot, ".git"));
+  await execFileAsync("git", ["init"], { cwd: repoRoot });
   await mkdir(join(repoRoot, "workspace", "active"), { recursive: true });
   await mkdir(join(repoRoot, "workspace", "archive"), { recursive: true });
 
@@ -52,6 +52,36 @@ export async function createWorkspaceDirectory(
   relativePath: string,
 ): Promise<void> {
   await mkdir(join(repoRoot, relativePath), { recursive: true });
+}
+
+export async function commitWorkspacePath(
+  repoRoot: string,
+  relativePath: string,
+  isoDate: string,
+): Promise<void> {
+  const markerPath = join(repoRoot, relativePath, "NOTES.md");
+  await writeFile(markerPath, `Committed at ${isoDate}\n`, "utf8");
+  await execFileAsync("git", ["add", relativePath], { cwd: repoRoot });
+  await execFileAsync(
+    "git",
+    [
+      "-c",
+      "user.name=Agonda Tests",
+      "-c",
+      "user.email=tests@example.com",
+      "commit",
+      "-m",
+      `Track ${relativePath}`,
+    ],
+    {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        GIT_AUTHOR_DATE: isoDate,
+        GIT_COMMITTER_DATE: isoDate,
+      },
+    },
+  );
 }
 
 export async function runCli(args: string[], cwd: string): Promise<CliResult> {
